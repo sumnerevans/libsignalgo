@@ -6,27 +6,81 @@ package libsignalgo
 */
 import "C"
 import (
+	"runtime"
 	"unsafe"
 )
 
 type PublicKey struct {
-	nativePointer *C.SignalPublicKey
+	ptr *C.SignalPublicKey
+}
+
+func wrapPublicKey(ptr *C.SignalPublicKey) *PublicKey {
+	publicKey := &PublicKey{ptr: ptr}
+	runtime.SetFinalizer(publicKey, (*PublicKey).Destroy)
+	return publicKey
+}
+
+func (pk *PublicKey) Clone() (*PublicKey, error) {
+	var cloned *C.SignalPublicKey
+	signalFfiError := C.signal_publickey_clone(&cloned, pk.ptr)
+	if signalFfiError != nil {
+		return nil, wrapError(signalFfiError)
+	}
+	return wrapPublicKey(cloned), nil
+}
+
+func DeserializePublicKey(keyData []byte) (*PublicKey, error) {
+	var pk *C.SignalPublicKey
+	signalFfiError := C.signal_publickey_deserialize(&pk, BytesToBuffer(keyData))
+	if signalFfiError != nil {
+		return nil, wrapError(signalFfiError)
+	}
+	return wrapPublicKey(pk), nil
+}
+
+func (pk *PublicKey) Serialize() ([]byte, error) {
+	var serialized *C.uchar
+	var length C.ulong
+	signalFfiError := C.signal_publickey_serialize(&serialized, &length, pk.ptr)
+	if signalFfiError != nil {
+		return nil, wrapError(signalFfiError)
+	}
+	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
 }
 
 func (k *PublicKey) Destroy() error {
-	signalFfiError := C.signal_publickey_destroy(k.nativePointer)
+	runtime.SetFinalizer(k, nil)
+	signalFfiError := C.signal_publickey_destroy(k.ptr)
 	if signalFfiError != nil {
 		return wrapError(signalFfiError)
 	}
 	return nil
 }
 
+func (k *PublicKey) Compare(other *PublicKey) (int, error) {
+	var comparison C.int
+	signalFfiError := C.signal_publickey_compare(&comparison, k.ptr, other.ptr)
+	if signalFfiError != nil {
+		return 0, wrapError(signalFfiError)
+	}
+	return int(comparison), nil
+}
+
 func (k *PublicKey) Bytes() ([]byte, error) {
 	var pub *C.uchar
 	var length C.ulong
-	signalFfiError := C.signal_publickey_get_public_key_bytes(&pub, &length, k.nativePointer)
+	signalFfiError := C.signal_publickey_get_public_key_bytes(&pub, &length, k.ptr)
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
 	return C.GoBytes(unsafe.Pointer(pub), C.int(length)), nil
+}
+
+func (k *PublicKey) Verify(message, signature []byte) (bool, error) {
+	var verify C.bool
+	signalFfiError := C.signal_publickey_verify(&verify, k.ptr, BytesToBuffer(message), BytesToBuffer(signature))
+	if signalFfiError != nil {
+		return false, wrapError(signalFfiError)
+	}
+	return bool(verify), nil
 }

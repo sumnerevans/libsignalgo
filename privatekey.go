@@ -5,10 +5,19 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import "unsafe"
+import (
+	"runtime"
+	"unsafe"
+)
 
 type PrivateKey struct {
-	nativePointer *C.SignalPrivateKey
+	ptr *C.SignalPrivateKey
+}
+
+func wrapPrivateKey(ptr *C.SignalPrivateKey) *PrivateKey {
+	privateKey := &PrivateKey{ptr: ptr}
+	runtime.SetFinalizer(privateKey, (*PrivateKey).Destroy)
+	return privateKey
 }
 
 func GeneratePrivateKey() (*PrivateKey, error) {
@@ -17,7 +26,7 @@ func GeneratePrivateKey() (*PrivateKey, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return &PrivateKey{nativePointer: pk}, nil
+	return wrapPrivateKey(pk), nil
 }
 
 func DeserializePrivateKey(keyData []byte) (*PrivateKey, error) {
@@ -26,20 +35,21 @@ func DeserializePrivateKey(keyData []byte) (*PrivateKey, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return &PrivateKey{nativePointer: pk}, nil
+	return wrapPrivateKey(pk), nil
 }
 
 func (pk *PrivateKey) Clone() (*PrivateKey, error) {
 	var cloned *C.SignalPrivateKey
-	signalFfiError := C.signal_privatekey_clone(&cloned, pk.nativePointer)
+	signalFfiError := C.signal_privatekey_clone(&cloned, pk.ptr)
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return &PrivateKey{nativePointer: cloned}, nil
+	return wrapPrivateKey(cloned), nil
 }
 
 func (pk *PrivateKey) Destroy() error {
-	signalFfiError := C.signal_privatekey_destroy(pk.nativePointer)
+	runtime.SetFinalizer(pk, nil)
+	signalFfiError := C.signal_privatekey_destroy(pk.ptr)
 	if signalFfiError != nil {
 		return wrapError(signalFfiError)
 	}
@@ -48,17 +58,17 @@ func (pk *PrivateKey) Destroy() error {
 
 func (pk *PrivateKey) GetPublicKey() (*PublicKey, error) {
 	var pub *C.SignalPublicKey
-	signalFfiError := C.signal_privatekey_get_public_key(&pub, pk.nativePointer)
+	signalFfiError := C.signal_privatekey_get_public_key(&pub, pk.ptr)
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return &PublicKey{nativePointer: pub}, nil
+	return wrapPublicKey(pub), nil
 }
 
 func (pk *PrivateKey) Serialize() ([]byte, error) {
 	var serialized *C.uchar
 	var length C.ulong
-	signalFfiError := C.signal_privatekey_serialize(&serialized, &length, pk.nativePointer)
+	signalFfiError := C.signal_privatekey_serialize(&serialized, &length, pk.ptr)
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
@@ -68,7 +78,7 @@ func (pk *PrivateKey) Serialize() ([]byte, error) {
 func (pk *PrivateKey) Sign(message []byte) ([]byte, error) {
 	var signed *C.uchar
 	var length C.ulong
-	signalFfiError := C.signal_privatekey_sign(&signed, &length, pk.nativePointer, BytesToBuffer(message))
+	signalFfiError := C.signal_privatekey_sign(&signed, &length, pk.ptr, BytesToBuffer(message))
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
@@ -78,7 +88,7 @@ func (pk *PrivateKey) Sign(message []byte) ([]byte, error) {
 func (pk *PrivateKey) Agree(publicKey *PublicKey) ([]byte, error) {
 	var agreed *C.uchar
 	var length C.ulong
-	signalFfiError := C.signal_privatekey_agree(&agreed, &length, pk.nativePointer, publicKey.nativePointer)
+	signalFfiError := C.signal_privatekey_agree(&agreed, &length, pk.ptr, publicKey.ptr)
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}

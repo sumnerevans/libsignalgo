@@ -49,6 +49,10 @@ func (e *SignalError) Error() string {
 }
 
 func wrapError(signalError *C.SignalFfiError) error {
+	if signalError == nil {
+		return nil
+	}
+
 	defer C.signal_error_free(signalError)
 
 	errorType := C.signal_error_get_type(signalError)
