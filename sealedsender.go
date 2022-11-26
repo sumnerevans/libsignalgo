@@ -54,11 +54,7 @@ func DeserializeUnidentifiedSenderMessageContent(serialized []byte) (*Unidentifi
 
 func (usmc *UnidentifiedSenderMessageContent) Destroy() error {
 	runtime.SetFinalizer(usmc, nil)
-	signalFfiError := C.signal_unidentified_sender_message_content_destroy(usmc.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_unidentified_sender_message_content_destroy(usmc.ptr))
 }
 
 func (usmc *UnidentifiedSenderMessageContent) Serialize() ([]byte, error) {

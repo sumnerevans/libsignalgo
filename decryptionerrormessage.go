@@ -59,11 +59,7 @@ func (dem *DecryptionErrorMessage) Clone() (*DecryptionErrorMessage, error) {
 
 func (dem *DecryptionErrorMessage) Destroy() error {
 	runtime.SetFinalizer(dem, nil)
-	signalFfiError := C.signal_decryption_error_message_destroy(dem.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_decryption_error_message_destroy(dem.ptr))
 }
 
 func (dem *DecryptionErrorMessage) Serialize() ([]byte, error) {

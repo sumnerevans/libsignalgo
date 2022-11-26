@@ -31,11 +31,7 @@ func NewHSMEnclaveClient(trustedPublicKey, trustedCodeHashes []byte) (*HSMEnclav
 
 func (hsm *HSMEnclaveClient) Destroy() error {
 	runtime.SetFinalizer(hsm, nil)
-	signalFfiError := C.signal_hsm_enclave_client_destroy(hsm.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_hsm_enclave_client_destroy(hsm.ptr))
 }
 
 func (hsm *HSMEnclaveClient) InitialRequest() ([]byte, error) {

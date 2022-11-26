@@ -52,11 +52,7 @@ func (sc *SenderCertificate) Clone() (*SenderCertificate, error) {
 
 func (sc *SenderCertificate) Destroy() error {
 	runtime.SetFinalizer(sc, nil)
-	signalFfiError := C.signal_sender_certificate_destroy(sc.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_sender_certificate_destroy(sc.ptr))
 }
 
 func (sc *SenderCertificate) GetSerialized() ([]byte, error) {

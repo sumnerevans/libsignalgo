@@ -32,11 +32,7 @@ func NewCDS2Client(mrenclave, attestation []byte, currentTimestamp time.Time) (*
 
 func (cds *CDS2Client) Destroy() error {
 	runtime.SetFinalizer(cds, nil)
-	signalFfiError := C.signal_cds2_client_state_destroy(cds.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_cds2_client_state_destroy(cds.ptr))
 }
 
 func (cds *CDS2Client) InitialRequest() ([]byte, error) {

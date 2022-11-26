@@ -40,11 +40,7 @@ func NewCiphertextMessage(plaintext PlaintextContent) (*CiphertextMessage, error
 
 func (c *CiphertextMessage) Destroy() error {
 	runtime.SetFinalizer(c, nil)
-	signalFfiError := C.signal_ciphertext_message_destroy(c.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_ciphertext_message_destroy(c.ptr))
 }
 
 func (c *CiphertextMessage) Serialize() ([]byte, error) {

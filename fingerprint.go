@@ -40,11 +40,7 @@ func (f *Fingerprint) Clone() (*Fingerprint, error) {
 
 func (f *Fingerprint) Destroy() error {
 	runtime.SetFinalizer(f, nil)
-	signalFfiError := C.signal_fingerprint_destroy(f.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_fingerprint_destroy(f.ptr))
 }
 
 func (f *Fingerprint) ScannableEncoding() ([]byte, error) {

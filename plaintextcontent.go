@@ -49,11 +49,7 @@ func (pk *PlaintextContent) Clone() (*PlaintextContent, error) {
 
 func (p *PlaintextContent) Destroy() error {
 	runtime.SetFinalizer(p, nil)
-	signalFfiError := C.signal_plaintext_content_destroy(p.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_plaintext_content_destroy(p.ptr))
 }
 
 func (pc *PlaintextContent) Serialize() ([]byte, error) {

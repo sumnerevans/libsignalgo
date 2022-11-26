@@ -49,11 +49,7 @@ func (pk *PrivateKey) Clone() (*PrivateKey, error) {
 
 func (pk *PrivateKey) Destroy() error {
 	runtime.SetFinalizer(pk, nil)
-	signalFfiError := C.signal_privatekey_destroy(pk.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_privatekey_destroy(pk.ptr))
 }
 
 func (pk *PrivateKey) GetPublicKey() (*PublicKey, error) {

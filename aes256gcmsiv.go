@@ -31,11 +31,7 @@ func NewAES256_GCM_SIV(key []byte) (*AES256_GCM_SIV, error) {
 
 func (aes *AES256_GCM_SIV) Destroy() error {
 	runtime.SetFinalizer(aes, nil)
-	signalFfiError := C.signal_aes256_gcm_siv_destroy(aes.ptr)
-	if signalFfiError != nil {
-		return wrapError(signalFfiError)
-	}
-	return nil
+	return wrapError(C.signal_aes256_gcm_siv_destroy(aes.ptr))
 }
 
 func (aes *AES256_GCM_SIV) Encrypt(plaintext, nonce, associatedData []byte) ([]byte, error) {
