@@ -84,6 +84,7 @@ func (usmc *UnidentifiedSenderMessageContent) GetGroupID() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
+	defer C.signal_free_buffer(groupID, length)
 	return C.GoBytes(unsafe.Pointer(groupID), C.int(length)), nil
 }
 

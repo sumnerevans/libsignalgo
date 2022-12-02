@@ -91,7 +91,7 @@ func (sc *SenderCertificate) GetSenderUUID() (string, error) {
 	if signalFfiError != nil {
 		return "", wrapError(signalFfiError)
 	}
-	return C.GoString(uuid), nil
+	return CopyCStringToString(uuid), nil
 }
 
 func (sc *SenderCertificate) GetSenderE164() (string, error) {
@@ -100,7 +100,7 @@ func (sc *SenderCertificate) GetSenderE164() (string, error) {
 	if signalFfiError != nil {
 		return "", wrapError(signalFfiError)
 	}
-	return C.GoString(e164), nil
+	return CopyCStringToString(e164), nil
 }
 
 func (sc *SenderCertificate) GetExpiration() (time.Time, error) {

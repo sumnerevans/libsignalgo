@@ -48,7 +48,7 @@ func (pa *Address) Name() (string, error) {
 	if signalFfiError != nil {
 		return "", wrapError(signalFfiError)
 	}
-	return C.GoString(name), nil
+	return CopyCStringToString(name), nil
 }
 
 func (pa *Address) DeviceID() (uint, error) {

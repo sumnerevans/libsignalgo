@@ -60,10 +60,9 @@ func wrapError(signalError *C.SignalFfiError) error {
 	var messageBytes *C.char
 	getMessageError := C.signal_error_get_message(signalError, &messageBytes)
 	if getMessageError != nil {
-        // Ignore any errors from this, it will just end up being an empty
-        // string.
+		// Ignore any errors from this, it will just end up being an empty
+		// string.
 		C.signal_error_free(getMessageError)
 	}
-
-	return &SignalError{Code: ErrorCode(errorType), Message: C.GoString(messageBytes)}
+	return &SignalError{Code: ErrorCode(errorType), Message: CopyCStringToString(messageBytes)}
 }

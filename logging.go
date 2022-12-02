@@ -19,7 +19,7 @@ func signal_log_enabled_callback(target *C.char, level C.SignalLogLevel) C.bool 
 
 //export signal_log_callback
 func signal_log_callback(target *C.char, level C.SignalLogLevel, file *C.char, line C.uint32_t, message *C.char) {
-	ffiLogger.Log(C.GoString(target), LogLevel(int(level)), C.GoString(file), int(line), C.GoString(message))
+	ffiLogger.Log(C.GoString(target), LogLevel(int(level)), C.GoString(file), uint(line), C.GoString(message))
 }
 
 //export signal_log_flush_callback
@@ -39,7 +39,7 @@ const (
 
 type FFILogger struct {
 	Enabled func(target string, level LogLevel) bool
-	Log     func(target string, level LogLevel, file string, line int, message string)
+	Log     func(target string, level LogLevel, file string, line uint, message string)
 	Flush   func()
 }
 

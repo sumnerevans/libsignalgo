@@ -59,7 +59,7 @@ func (f *Fingerprint) DisplayString() (string, error) {
 	if signalFfiError != nil {
 		return "", wrapError(signalFfiError)
 	}
-	return C.GoString(displayString), nil
+	return CopyCStringToString(displayString), nil
 }
 
 func (k *Fingerprint) Compare(fingerprint1, fingerprint2 []byte) (bool, error) {
