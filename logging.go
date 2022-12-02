@@ -10,7 +10,8 @@ extern void signal_log_flush_callback();
 */
 import "C"
 
-var ffiLogger FFILogger
+// ffiLogger is the global logger object.
+var ffiLogger Logger
 
 //export signal_log_enabled_callback
 func signal_log_enabled_callback(target *C.char, level C.SignalLogLevel) C.bool {
@@ -37,13 +38,13 @@ const (
 	LogLevelTrace
 )
 
-type FFILogger struct {
-	Enabled func(target string, level LogLevel) bool
-	Log     func(target string, level LogLevel, file string, line uint, message string)
-	Flush   func()
+type Logger interface {
+	Enabled(target string, level LogLevel) bool
+	Log(target string, level LogLevel, file string, line uint, message string)
+	Flush()
 }
 
-func InitLogger(level LogLevel, logger FFILogger) {
+func InitLogger(level LogLevel, logger Logger) {
 	ffiLogger = logger
 	C.signal_init_logger(C.SignalLogLevel(level), C.SignalFfiLogger{
 		enabled: C.SignalLogEnabledCallback(C.signal_log_enabled_callback),

@@ -6,10 +6,6 @@ package libsignalgo
 */
 import "C"
 
-type SessionStore struct {
-	ptr *C.SignalSessionStore
-}
-
 // type SessionStore[T any] interface {
 // 	LoadSession(storeCtx T, record *SessionRecord, address Address, ctx any) (*SessionRecord, error)
 // 	StoreSession(storeCtx T, address Address, record *SessionRecord, ctx any)
