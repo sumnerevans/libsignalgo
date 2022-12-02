@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type ServerCertificate struct {
 	ptr *C.SignalServerCertificate
@@ -61,7 +58,7 @@ func (sc *ServerCertificate) GetSerialized() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (sc *ServerCertificate) GetCertificate() ([]byte, error) {
@@ -71,7 +68,7 @@ func (sc *ServerCertificate) GetCertificate() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(certificate), C.int(length)), nil
+	return CopyBufferToBytes(certificate, length), nil
 }
 
 func (sc *ServerCertificate) GetSignature() ([]byte, error) {
@@ -81,7 +78,7 @@ func (sc *ServerCertificate) GetSignature() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(signature), C.int(length)), nil
+	return CopyBufferToBytes(signature, length), nil
 }
 
 func (sc *ServerCertificate) GetKeyId() (uint32, error) {

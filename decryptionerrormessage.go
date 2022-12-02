@@ -8,7 +8,6 @@ import "C"
 import (
 	"runtime"
 	"time"
-	"unsafe"
 )
 
 type DecryptionErrorMessage struct {
@@ -69,7 +68,7 @@ func (dem *DecryptionErrorMessage) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (dem *DecryptionErrorMessage) GetTimestamp() (time.Time, error) {

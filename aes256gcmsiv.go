@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type AES256_GCM_SIV struct {
 	ptr *C.SignalAes256GcmSiv
@@ -41,7 +38,7 @@ func (aes *AES256_GCM_SIV) Encrypt(plaintext, nonce, associatedData []byte) ([]b
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(encrypted), C.int(length)), nil
+	return CopyBufferToBytes(encrypted, length), nil
 }
 
 func (aes *AES256_GCM_SIV) Decrypt(ciphertext, nonce, associatedData []byte) ([]byte, error) {
@@ -51,5 +48,5 @@ func (aes *AES256_GCM_SIV) Decrypt(ciphertext, nonce, associatedData []byte) ([]
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(decrypted), C.int(length)), nil
+	return CopyBufferToBytes(decrypted, length), nil
 }

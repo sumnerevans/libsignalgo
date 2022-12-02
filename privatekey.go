@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type PrivateKey struct {
 	ptr *C.SignalPrivateKey
@@ -68,7 +65,7 @@ func (pk *PrivateKey) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (pk *PrivateKey) Sign(message []byte) ([]byte, error) {
@@ -78,7 +75,7 @@ func (pk *PrivateKey) Sign(message []byte) ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(signed), C.int(length)), nil
+	return CopyBufferToBytes(signed, length), nil
 }
 
 func (pk *PrivateKey) Agree(publicKey *PublicKey) ([]byte, error) {
@@ -88,5 +85,5 @@ func (pk *PrivateKey) Agree(publicKey *PublicKey) ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(agreed), C.int(length)), nil
+	return CopyBufferToBytes(agreed, length), nil
 }

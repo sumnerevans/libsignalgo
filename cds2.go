@@ -8,7 +8,6 @@ import "C"
 import (
 	"runtime"
 	"time"
-	"unsafe"
 )
 
 type CDS2Client struct {
@@ -42,7 +41,7 @@ func (cds *CDS2Client) InitialRequest() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }
 
 func (cds *CDS2Client) CompleteHandshake(handshakeReceived []byte) error {
@@ -57,7 +56,7 @@ func (cds *CDS2Client) EstablishedSend(plaintext []byte) ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }
 
 func (cds *CDS2Client) EstablishedReceive(ciphertext []byte) ([]byte, error) {
@@ -67,5 +66,5 @@ func (cds *CDS2Client) EstablishedReceive(ciphertext []byte) ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }

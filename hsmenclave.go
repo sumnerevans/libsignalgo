@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type HSMEnclaveClient struct {
 	ptr *C.SignalHsmEnclaveClient
@@ -41,7 +38,7 @@ func (hsm *HSMEnclaveClient) InitialRequest() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }
 
 func (hsm *HSMEnclaveClient) CompleteHandshake(handshakeReceived []byte) error {
@@ -56,7 +53,7 @@ func (hsm *HSMEnclaveClient) EstablishedSend(plaintext []byte) ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }
 
 func (cds *HSMEnclaveClient) EstablishedReceive(ciphertext []byte) ([]byte, error) {
@@ -66,5 +63,5 @@ func (cds *HSMEnclaveClient) EstablishedReceive(ciphertext []byte) ([]byte, erro
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }

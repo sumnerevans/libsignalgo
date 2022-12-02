@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type PublicKey struct {
 	ptr *C.SignalPublicKey
@@ -45,7 +42,7 @@ func (pk *PublicKey) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (k *PublicKey) Destroy() error {
@@ -69,7 +66,7 @@ func (k *PublicKey) Bytes() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(pub), C.int(length)), nil
+	return CopyBufferToBytes(pub, length), nil
 }
 
 func (k *PublicKey) Verify(message, signature []byte) (bool, error) {

@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type Fingerprint struct {
 	ptr *C.SignalFingerprint
@@ -50,7 +47,7 @@ func (f *Fingerprint) ScannableEncoding() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(scannableEncoding), C.int(length)), nil
+	return CopyBufferToBytes(scannableEncoding, length), nil
 }
 
 func (f *Fingerprint) DisplayString() (string, error) {

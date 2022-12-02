@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type SessionRecord struct {
 	ptr *C.SignalSessionRecord
@@ -72,7 +69,7 @@ func (sr *SessionRecord) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (sr *SessionRecord) GetLocalRegistrationID() (uint32, error) {

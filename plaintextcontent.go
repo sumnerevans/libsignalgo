@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type PlaintextContent struct {
 	ptr *C.SignalPlaintextContent
@@ -59,7 +56,7 @@ func (pc *PlaintextContent) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (pc *PlaintextContent) GetBody() ([]byte, error) {
@@ -69,5 +66,5 @@ func (pc *PlaintextContent) GetBody() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(body), C.int(length)), nil
+	return CopyBufferToBytes(body, length), nil
 }

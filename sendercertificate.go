@@ -8,7 +8,6 @@ import "C"
 import (
 	"runtime"
 	"time"
-	"unsafe"
 )
 
 type SenderCertificate struct {
@@ -62,7 +61,7 @@ func (sc *SenderCertificate) GetSerialized() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (sc *SenderCertificate) GetCertificate() ([]byte, error) {
@@ -72,7 +71,7 @@ func (sc *SenderCertificate) GetCertificate() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(certificate), C.int(length)), nil
+	return CopyBufferToBytes(certificate, length), nil
 }
 
 func (sc *SenderCertificate) GetSignature() ([]byte, error) {
@@ -82,7 +81,7 @@ func (sc *SenderCertificate) GetSignature() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(signature), C.int(length)), nil
+	return CopyBufferToBytes(signature, length), nil
 }
 
 func (sc *SenderCertificate) GetSenderUUID() (string, error) {
@@ -99,6 +98,9 @@ func (sc *SenderCertificate) GetSenderE164() (string, error) {
 	signalFfiError := C.signal_sender_certificate_get_sender_e164(&e164, sc.ptr)
 	if signalFfiError != nil {
 		return "", wrapError(signalFfiError)
+	}
+	if e164 == nil {
+		return "", nil
 	}
 	return CopyCStringToString(e164), nil
 }

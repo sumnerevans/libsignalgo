@@ -5,10 +5,7 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import (
-	"runtime"
-	"unsafe"
-)
+import "runtime"
 
 type SealedSenderAddress struct {
 	E164     string
@@ -64,7 +61,7 @@ func (usmc *UnidentifiedSenderMessageContent) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (usmc *UnidentifiedSenderMessageContent) GetContents() ([]byte, error) {
@@ -74,7 +71,7 @@ func (usmc *UnidentifiedSenderMessageContent) GetContents() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(contents), C.int(length)), nil
+	return CopyBufferToBytes(contents, length), nil
 }
 
 func (usmc *UnidentifiedSenderMessageContent) GetGroupID() ([]byte, error) {
@@ -84,8 +81,10 @@ func (usmc *UnidentifiedSenderMessageContent) GetGroupID() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	defer C.signal_free_buffer(groupID, length)
-	return C.GoBytes(unsafe.Pointer(groupID), C.int(length)), nil
+	if groupID == nil {
+		return nil, nil
+	}
+	return CopyBufferToBytes(groupID, length), nil
 }
 
 func (usmc *UnidentifiedSenderMessageContent) GetSenderCertificate() (*SenderCertificate, error) {

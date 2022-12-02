@@ -5,7 +5,6 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import "unsafe"
 
 type IdentityKey struct {
 	publicKey *PublicKey
@@ -74,7 +73,7 @@ func (i *IdentityKeyPair) Serialize() ([]byte, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(serialized), C.int(length)), nil
+	return CopyBufferToBytes(serialized, length), nil
 }
 
 func (i *IdentityKeyPair) GetIdentityKey() *IdentityKey {
@@ -88,5 +87,5 @@ func (i *IdentityKeyPair) SignAlternateIdentity(other *IdentityKey) ([]byte, err
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(signature), C.int(length)), nil
+	return CopyBufferToBytes(signature, length), nil
 }

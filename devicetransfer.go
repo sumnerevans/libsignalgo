@@ -5,7 +5,6 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import "unsafe"
 
 type DeviceTransferKey struct {
 	privateKey []byte
@@ -18,9 +17,7 @@ func GenerateDeviceTransferKey() (*DeviceTransferKey, error) {
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return &DeviceTransferKey{
-		privateKey: C.GoBytes(unsafe.Pointer(resp), C.int(length)),
-	}, nil
+	return &DeviceTransferKey{privateKey: CopyBufferToBytes(resp, length)}, nil
 }
 
 func (dtk *DeviceTransferKey) Bytes() []byte {
@@ -34,5 +31,5 @@ func (dtk *DeviceTransferKey) GenerateCertificate(name string, days int) ([]byte
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
-	return C.GoBytes(unsafe.Pointer(resp), C.int(length)), nil
+	return CopyBufferToBytes(resp, length), nil
 }
