@@ -111,7 +111,7 @@ func (sc *SenderCertificate) GetExpiration() (time.Time, error) {
 	if signalFfiError != nil {
 		return time.Time{}, wrapError(signalFfiError)
 	}
-	return time.UnixMilli(int64(expiration)), nil
+	return time.Unix(int64(expiration), 0), nil
 }
 
 func (sc *SenderCertificate) GetDeviceID() (uint32, error) {
