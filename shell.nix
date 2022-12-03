@@ -11,6 +11,8 @@ mkShell rec {
     rustup
 
     go_1_19
+
+    pre-commit
   ];
 
   LIBCLANG_PATH = "${pkgs.llvmPackages_11.libclang.lib}/lib";

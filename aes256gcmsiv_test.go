@@ -30,5 +30,7 @@ func TestAES256_GCM_SIV(t *testing.T) {
 	assert.Equal(t, plaintext, recovered)
 
 	_, err = gcmSiv.Decrypt(plaintext, nonce, associatedData)
+	assert.Error(t, err)
 	_, err = gcmSiv.Decrypt(ciphertext, associatedData, nonce)
+	assert.Error(t, err)
 }
