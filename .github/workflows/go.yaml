@@ -51,4 +51,3 @@ jobs:
       - name: Run tests
         run: |
           go test -v -json ./... -cover | gotestfmt
-
