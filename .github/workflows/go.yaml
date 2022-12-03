@@ -24,6 +24,14 @@ jobs:
           go install honnef.co/go/tools/cmd/staticcheck@latest
           export PATH="$HOME/go/bin:$PATH"
 
+      - uses: actions/cache@v3
+        with:
+          path: |
+            libsignal/Cargo.toml
+            libsignal/libsignal-ffi.h
+            libsignal/target/release/libsignal_ffi.a
+          key: ${{ hashFiles('./Makefile') }}
+
       - name: Make libsignal/libsignal-ffi.h
         run: make
 
@@ -40,6 +48,14 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            libsignal/Cargo.toml
+            libsignal/libsignal-ffi.h
+            libsignal/target/release/libsignal_ffi.a
+          key: ${{ hashFiles('./Makefile') }}
 
       - name: Install Dependencies
         run: |
