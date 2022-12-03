@@ -19,7 +19,7 @@ func wrapAddress(ptr *C.SignalProtocolAddress) *Address {
 	return address
 }
 
-func NewAddress(name string, deviceID int) (*Address, error) {
+func NewAddress(name string, deviceID uint) (*Address, error) {
 	var pa *C.SignalProtocolAddress
 	signalFfiError := C.signal_address_new(&pa, C.CString(name), C.uint(deviceID))
 	if signalFfiError != nil {

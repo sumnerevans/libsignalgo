@@ -40,6 +40,14 @@ type IdentityKeyPair struct {
 	privateKey *PrivateKey
 }
 
+func (i *IdentityKeyPair) GetPublicKey() *PublicKey {
+	return i.publicKey
+}
+
+func (i *IdentityKeyPair) GetPrivateKey() *PrivateKey {
+	return i.privateKey
+}
+
 func GenerateIdentityKeyPair() (*IdentityKeyPair, error) {
 	privateKey, err := GeneratePrivateKey()
 	if err != nil {
