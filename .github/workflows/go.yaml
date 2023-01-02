@@ -57,9 +57,8 @@ jobs:
             libsignal/target/release/libsignal_ffi.a
           key: ${{ hashFiles('./Makefile') }}
 
-      - name: Install Dependencies
-        run: |
-          go install -v github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@latest
+      - name: Set up gotestfmt
+        uses: GoTestTools/gotestfmt-action@v2
 
       - name: Make libsignal/libsignal-ffi.h
         run: make

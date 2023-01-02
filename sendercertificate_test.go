@@ -122,5 +122,5 @@ func TestSenderCertificateSerializationRoundTrip(t *testing.T) {
 	testRoundTrip(t, "private key", keyPair.GetPrivateKey(), libsignalgo.DeserializePrivateKey)
 	testRoundTrip(t, "identity key", keyPair.GetIdentityKey(), libsignalgo.NewIdentityKeyFromBytes)
 
-	// TODO
+	// TODO add the other tests similar to Swift
 }
