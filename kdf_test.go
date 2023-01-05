@@ -46,11 +46,6 @@ func TestHKDF_RFCExample(t *testing.T) {
 		0x1d, 0x87,
 	}
 
-	// assert.Equal(t, []byte{}, inputKeyMaterial)
-	// assert.Equal(t, []byte{}, salt)
-	// assert.Equal(t, []byte{}, info)
-	// assert.Equal(t, []byte{}, outputKeyMaterial)
-
 	derived, err := libsignalgo.HKDFDerive(len(outputKeyMaterial), inputKeyMaterial, salt, info)
 	assert.NoError(t, err)
 	assert.Equal(t, outputKeyMaterial, derived)

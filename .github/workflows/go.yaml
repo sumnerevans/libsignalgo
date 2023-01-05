@@ -59,6 +59,8 @@ jobs:
 
       - name: Set up gotestfmt
         uses: GoTestTools/gotestfmt-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Make libsignal/libsignal-ffi.h
         run: make

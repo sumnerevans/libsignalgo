@@ -9,7 +9,7 @@ import "unsafe"
 
 func HKDFDerive(outputLength int, inputKeyMaterial, salt, info []byte) ([]byte, error) {
 	output := BorrowedMutableBuffer(outputLength)
-	signalFfiError := C.signal_hkdf_derive(output, BytesToBuffer(inputKeyMaterial), BytesToBuffer(salt), BytesToBuffer(info))
+	signalFfiError := C.signal_hkdf_derive(output, BytesToBuffer(inputKeyMaterial), BytesToBuffer(info), BytesToBuffer(salt))
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
