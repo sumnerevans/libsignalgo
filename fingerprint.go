@@ -7,6 +7,13 @@ package libsignalgo
 import "C"
 import "runtime"
 
+type FingerprintVersion uint32
+
+const (
+	FingerprintVersionV1 FingerprintVersion = 1
+	FingerprintVersionV2 FingerprintVersion = 2
+)
+
 type Fingerprint struct {
 	ptr *C.SignalFingerprint
 }
@@ -17,7 +24,7 @@ func wrapFingerprint(ptr *C.SignalFingerprint) *Fingerprint {
 	return fingerprint
 }
 
-func NewFingerprint(iterations, version uint32, localIdentifier []byte, localKey PublicKey, remoteIdentifier []byte, remoteKey PublicKey) (*Fingerprint, error) {
+func NewFingerprint(iterations, version FingerprintVersion, localIdentifier []byte, localKey *PublicKey, remoteIdentifier []byte, remoteKey *PublicKey) (*Fingerprint, error) {
 	var pa *C.SignalFingerprint
 	signalFfiError := C.signal_fingerprint_new(&pa, C.uint32_t(iterations), C.uint32_t(version), BytesToBuffer(localIdentifier), localKey.ptr, BytesToBuffer(remoteIdentifier), remoteKey.ptr)
 	if signalFfiError != nil {
