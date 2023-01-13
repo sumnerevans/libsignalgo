@@ -27,7 +27,7 @@ func NewSenderKeyDistributionMessage(sender *Address, distributionID uuid.UUID, 
 	signalFfiError := C.signal_sender_key_distribution_message_create(
 		&skdm,
 		sender.ptr,
-		(*[16]C.uchar)(unsafe.Pointer(&distributionID)),
+		(*[C.SignalUUID_LEN]C.uchar)(unsafe.Pointer(&distributionID)),
 		wrapSenderKeyStore(store),
 		unsafe.Pointer(&context))
 	if signalFfiError != nil {

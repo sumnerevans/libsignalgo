@@ -11,12 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
+var UUIDLen = sizeMustMatch(C.SignalUUID_LEN, 16)
+
 func GroupEncrypt(ptext []byte, sender *Address, distributionID uuid.UUID, store SenderKeyStore, context StoreContext) (*CiphertextMessage, error) {
 	var ciphertextMessage *C.SignalCiphertextMessage
 	signalFfiError := C.signal_group_encrypt_message(
 		&ciphertextMessage,
 		sender.ptr,
-		(*[16]C.uchar)(unsafe.Pointer(&distributionID)),
+		(*[C.SignalUUID_LEN]C.uchar)(unsafe.Pointer(&distributionID)),
 		BytesToBuffer(ptext),
 		wrapSenderKeyStore(store),
 		unsafe.Pointer(&context))
