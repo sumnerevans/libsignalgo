@@ -8,6 +8,7 @@ import (
 	"github.com/beeper/libsignalgo"
 )
 
+// From PublicAPITests.swift:testHkdfSimple
 func TestHKDF_Simple(t *testing.T) {
 	setupLogging()
 	inputKeyMaterial := []byte{
@@ -21,6 +22,7 @@ func TestHKDF_Simple(t *testing.T) {
 	assert.Equal(t, outputKeyMaterial, derived)
 }
 
+// From PublicAPITests.swift:testHkdfUsingRFCExample
 func TestHKDF_RFCExample(t *testing.T) {
 	setupLogging()
 

@@ -8,6 +8,7 @@ import (
 	"github.com/beeper/libsignalgo"
 )
 
+// From PublicAPITests.swift:testAddress
 func TestAddress(t *testing.T) {
 	setupLogging()
 

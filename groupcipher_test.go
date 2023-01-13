@@ -53,6 +53,7 @@ func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address
 	return nil
 }
 
+// From PublicAPITests.swift:testGroupCipher
 func TestGroupCipher(t *testing.T) {
 	sender, err := libsignalgo.NewAddress("+14159999111", 4)
 	assert.NoError(t, err)

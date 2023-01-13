@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// From PublicAPITests.swift:testSenderCertificates
 func TestSenderCertificate_Operations(t *testing.T) {
 	setupLogging()
 	senderCertBits := []byte{

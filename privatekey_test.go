@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// From PublicAPITests.swift:testPkOperations
 func TestPrivateKeyOperations(t *testing.T) {
 	setupLogging()
 	var err error
@@ -38,7 +39,7 @@ func TestPrivateKeyOperations(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, publicKeyBytes)
 
-		assert.Equal(t, uint8(5), publicKeyBytes[0])
+		assert.EqualValues(t, 5, publicKeyBytes[0])
 		assert.Len(t, publicKeyBytes, 33)
 	})
 

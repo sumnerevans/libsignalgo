@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// From PublicAPITests.swift:testSignAlternateIdentity
 func TestSignAlternateIdentity(t *testing.T) {
 	primary, err := libsignalgo.GenerateIdentityKeyPair()
 	assert.NoError(t, err)
