@@ -43,10 +43,6 @@ func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address
 	if err != nil {
 		return err
 	}
-	cloned, err := record.Clone()
-	if err != nil {
-		return err
-	}
-	ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}] = cloned
+	ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}] = record
 	return nil
 }
