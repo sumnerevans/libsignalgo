@@ -126,7 +126,20 @@ func TestSenderCertificateSerializationRoundTrip(t *testing.T) {
 	testRoundTrip(t, "identity key", keyPair.GetIdentityKey(), libsignalgo.NewIdentityKeyFromBytes)
 
 	preKeyRecord, err := libsignalgo.NewPreKeyRecord(7, keyPair.GetPublicKey(), keyPair.GetPrivateKey())
+	assert.NoError(t, err)
 	testRoundTrip(t, "pre key record", preKeyRecord, libsignalgo.DeserializePreKeyRecord)
 
-	// TODO add the other tests similar to Swift
+	publicKeySerialized, err := keyPair.GetPublicKey().Serialize()
+	assert.NoError(t, err)
+	signature, err := keyPair.GetPrivateKey().Sign(publicKeySerialized)
+	assert.NoError(t, err)
+
+	signedPreKeyRecord, err := libsignalgo.NewSignedPreKeyRecordFromPrivateKey(
+		77,
+		time.UnixMilli(42000),
+		keyPair.GetPrivateKey(),
+		signature,
+	)
+	assert.NoError(t, err)
+	testRoundTrip(t, "signed pre key record", signedPreKeyRecord, libsignalgo.DeserializeSignedPreKeyRecord)
 }
