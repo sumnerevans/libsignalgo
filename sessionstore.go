@@ -26,32 +26,27 @@ type SessionStore interface {
 
 //export signal_load_session_callback
 func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSessionRecord, address *C.const_address, ctx unsafe.Pointer) C.int {
-	store := gopointer.Restore(storeCtx).(SessionStore)
-	context := gopointer.Restore(ctx).(StoreContext)
-	record, err := store.LoadSession(
-		Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
-		context,
-	)
-	if err != nil {
-		return -1
-	}
-	*recordp = record.ptr
-	return 0
+	return wrapStoreCallback(storeCtx, ctx, func(store SessionStore, context StoreContext) error {
+		record, err := store.LoadSession(
+			Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
+			context,
+		)
+		if err == nil && record != nil {
+			*recordp = record.ptr
+		}
+		return err
+	})
 }
 
 //export signal_store_session_callback
 func signal_store_session_callback(storeCtx unsafe.Pointer, address *C.const_address, record *C.const_session_record, ctx unsafe.Pointer) C.int {
-	store := gopointer.Restore(storeCtx).(SessionStore)
-	context := gopointer.Restore(ctx).(StoreContext)
-	err := store.StoreSenderKey(
-		Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
-		&SessionRecord{ptr: (*C.SignalSessionRecord)(unsafe.Pointer(record))},
-		context,
-	)
-	if err != nil {
-		return -1
-	}
-	return 0
+	return wrapStoreCallback(storeCtx, ctx, func(store SessionStore, context StoreContext) error {
+		return store.StoreSenderKey(
+			Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
+			&SessionRecord{ptr: (*C.SignalSessionRecord)(unsafe.Pointer(record))},
+			context,
+		)
+	})
 }
 
 func wrapSessionStore(store SessionStore) *C.SignalSessionStore {

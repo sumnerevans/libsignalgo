@@ -20,43 +20,88 @@ import (
 	gopointer "github.com/mattn/go-pointer"
 )
 
+type SignalDirection C.uint
+
+const (
+	SignalDirectionSending   SignalDirection = 0
+	SignalDirectionReceiving SignalDirection = 1
+)
+
 type IdentityKeyStore interface {
 	GetIdentityKeyPair(context StoreContext) (*PrivateKey, error)
-	GetLocalRegistrationId(idp *uint32) error
-	SaveIdentityKey(address *Address, publicKey *PublicKey) error
-	GetIdentityKey(publicKey **PublicKey, address *Address) error
-	IsTrustedIdentity(address *Address, publicKey *PublicKey, direction uint) error
+	GetLocalRegistrationId(context StoreContext) (uint32, error)
+	SaveIdentityKey(address *Address, publicKey *PublicKey, context StoreContext) error
+	GetIdentityKey(address *Address, context StoreContext) (*PublicKey, error)
+	IsTrustedIdentity(address *Address, publicKey *PublicKey, direction SignalDirection, context StoreContext) (bool, error)
 }
 
 //export signal_get_identity_key_pair_callback
 func signal_get_identity_key_pair_callback(storeCtx unsafe.Pointer, keyp **C.SignalPrivateKey, ctx unsafe.Pointer) C.int {
-	store := gopointer.Restore(storeCtx).(IdentityKeyStore)
-	context := gopointer.Restore(ctx).(StoreContext)
-	key, err := store.GetIdentityKeyPair(context)
-	if err != nil && key != nil {
-		*keyp = key.ptr
-	}
-	return 0
+	return wrapStoreCallback(storeCtx, ctx, func(store IdentityKeyStore, context StoreContext) error {
+		key, err := store.GetIdentityKeyPair(context)
+		if err == nil && key != nil {
+			*keyp = key.ptr
+		}
+		return err
+	})
 }
 
 //export signal_get_local_registration_id_callback
 func signal_get_local_registration_id_callback(storeCtx unsafe.Pointer, idp *C.uint32_t, ctx unsafe.Pointer) C.int {
-	panic("not implemented")
+	return wrapStoreCallback(storeCtx, ctx, func(store IdentityKeyStore, context StoreContext) error {
+		registrationID, err := store.GetLocalRegistrationId(context)
+		if err == nil {
+			*idp = C.uint32_t(registrationID)
+		}
+		return err
+	})
 }
 
 //export signal_save_identity_key_callback
 func signal_save_identity_key_callback(storeCtx unsafe.Pointer, address *C.const_address, public_key *C.const_public_key, ctx unsafe.Pointer) C.int {
-	panic("not implemented")
+	return wrapStoreCallback(storeCtx, ctx, func(store IdentityKeyStore, context StoreContext) error {
+		return store.SaveIdentityKey(
+			&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
+			&PublicKey{ptr: (*C.SignalPublicKey)(unsafe.Pointer(public_key))},
+			context,
+		)
+	})
 }
 
 //export signal_get_identity_key_callback
 func signal_get_identity_key_callback(storeCtx unsafe.Pointer, public_keyp **C.SignalPublicKey, address *C.const_address, ctx unsafe.Pointer) C.int {
-	panic("not implemented")
+	return wrapStoreCallback(storeCtx, ctx, func(store IdentityKeyStore, context StoreContext) error {
+		key, err := store.GetIdentityKey(
+			&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
+			context,
+		)
+		if err == nil && key != nil {
+			*public_keyp = key.ptr
+		}
+		return err
+	})
 }
 
 //export signal_is_trusted_identity_callback
 func signal_is_trusted_identity_callback(storeCtx unsafe.Pointer, address *C.const_address, public_key *C.const_public_key, direction C.uint, ctx unsafe.Pointer) C.int {
-	panic("not implemented")
+	store := gopointer.Restore(storeCtx).(IdentityKeyStore)
+	var context StoreContext
+	if ctx != nil {
+		if restored := gopointer.Restore(ctx); restored != nil {
+			context = restored.(StoreContext)
+		}
+	}
+	trusted, err := store.IsTrustedIdentity(
+		&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
+		&PublicKey{ptr: (*C.SignalPublicKey)(unsafe.Pointer(public_key))},
+		SignalDirection(direction),
+		context,
+	)
+	if trusted && err != nil {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 func wrapIdentityKeyStore(store IdentityKeyStore) *C.SignalIdentityKeyStore {
