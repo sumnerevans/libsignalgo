@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/beeper/libsignalgo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/beeper/libsignalgo"
 )
 
 //go:embed resources/clienthandshakestart.data

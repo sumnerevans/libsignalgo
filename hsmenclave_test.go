@@ -3,8 +3,9 @@ package libsignalgo_test
 import (
 	"testing"
 
-	"github.com/beeper/libsignalgo"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/beeper/libsignalgo"
 )
 
 var nullHash = []byte{

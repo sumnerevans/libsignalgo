@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/beeper/libsignalgo"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/beeper/libsignalgo"
 )
 
 // From PublicAPITests.swift:testSenderCertificates

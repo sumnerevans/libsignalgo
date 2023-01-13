@@ -3,8 +3,9 @@ package libsignalgo_test
 import (
 	"testing"
 
-	"github.com/beeper/libsignalgo"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/beeper/libsignalgo"
 )
 
 // From PublicAPITests.swift:testSignAlternateIdentity
@@ -17,7 +18,7 @@ func TestSignAlternateIdentity(t *testing.T) {
 	signature, err := secondary.SignAlternateIdentity(primary.GetIdentityKey())
 	assert.NoError(t, err)
 
-	verified, err :=secondary.GetIdentityKey().VerifyAlternateIdentity(primary.GetIdentityKey(), signature)
+	verified, err := secondary.GetIdentityKey().VerifyAlternateIdentity(primary.GetIdentityKey(), signature)
 	assert.NoError(t, err)
 	assert.True(t, verified)
 }
