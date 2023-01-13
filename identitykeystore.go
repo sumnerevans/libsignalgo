@@ -58,11 +58,16 @@ func signal_get_local_registration_id_callback(storeCtx unsafe.Pointer, idp *C.u
 }
 
 //export signal_save_identity_key_callback
-func signal_save_identity_key_callback(storeCtx unsafe.Pointer, address *C.const_address, public_key *C.const_public_key, ctx unsafe.Pointer) C.int {
+func signal_save_identity_key_callback(storeCtx unsafe.Pointer, address *C.const_address, publicKey *C.const_public_key, ctx unsafe.Pointer) C.int {
 	return wrapStoreCallback(storeCtx, ctx, func(store IdentityKeyStore, context StoreContext) error {
+		publicKey := PublicKey{ptr: (*C.SignalPublicKey)(unsafe.Pointer(publicKey))}
+		cloned, err := publicKey.Clone()
+		if err != nil {
+			return err
+		}
 		return store.SaveIdentityKey(
 			&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
-			&IdentityKey{&PublicKey{ptr: (*C.SignalPublicKey)(unsafe.Pointer(public_key))}},
+			&IdentityKey{cloned},
 			context,
 		)
 	})

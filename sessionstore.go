@@ -39,11 +39,16 @@ func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSes
 }
 
 //export signal_store_session_callback
-func signal_store_session_callback(storeCtx unsafe.Pointer, address *C.const_address, record *C.const_session_record, ctx unsafe.Pointer) C.int {
+func signal_store_session_callback(storeCtx unsafe.Pointer, address *C.const_address, sessionRecord *C.const_session_record, ctx unsafe.Pointer) C.int {
 	return wrapStoreCallback(storeCtx, ctx, func(store SessionStore, context StoreContext) error {
+		record := SessionRecord{ptr: (*C.SignalSessionRecord)(unsafe.Pointer(sessionRecord))}
+		cloned, err := record.Clone()
+		if err != nil {
+			return err
+		}
 		return store.StoreSession(
 			&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
-			&SessionRecord{ptr: (*C.SignalSessionRecord)(unsafe.Pointer(record))},
+			cloned,
 			context,
 		)
 	})

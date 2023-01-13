@@ -44,7 +44,7 @@ func wrapPreKeyRecord(ptr *C.SignalPreKeyRecord) *PreKeyRecord {
 	return pkr
 }
 
-func NewPreKeyRecord(id int, publicKey *PublicKey, privateKey *PrivateKey) (*PreKeyRecord, error) {
+func NewPreKeyRecord(id uint32, publicKey *PublicKey, privateKey *PrivateKey) (*PreKeyRecord, error) {
 	var pkr *C.SignalPreKeyRecord
 	signalFfiError := C.signal_pre_key_record_new(&pkr, C.uint32_t(id), publicKey.ptr, privateKey.ptr)
 	if signalFfiError != nil {
@@ -53,7 +53,7 @@ func NewPreKeyRecord(id int, publicKey *PublicKey, privateKey *PrivateKey) (*Pre
 	return wrapPreKeyRecord(pkr), nil
 }
 
-func NewPreKeyRecordFromPrivateKey(id int, privateKey *PrivateKey) (*PreKeyRecord, error) {
+func NewPreKeyRecordFromPrivateKey(id uint32, privateKey *PrivateKey) (*PreKeyRecord, error) {
 	pub, err := privateKey.GetPublicKey()
 	if err != nil {
 		return nil, err

@@ -20,7 +20,7 @@ func wrapSignedPreKeyRecord(ptr *C.SignalSignedPreKeyRecord) *SignedPreKeyRecord
 	return spkr
 }
 
-func NewSignedPreKeyRecord(id int, timestamp time.Time, publicKey *PublicKey, privateKey *PrivateKey, signature []byte) (*SignedPreKeyRecord, error) {
+func NewSignedPreKeyRecord(id uint32, timestamp time.Time, publicKey *PublicKey, privateKey *PrivateKey, signature []byte) (*SignedPreKeyRecord, error) {
 	var spkr *C.SignalSignedPreKeyRecord
 	signalFfiError := C.signal_signed_pre_key_record_new(&spkr, C.uint32_t(id), C.uint64_t(timestamp.UnixMilli()), publicKey.ptr, privateKey.ptr, BytesToBuffer(signature))
 	if signalFfiError != nil {
@@ -29,7 +29,7 @@ func NewSignedPreKeyRecord(id int, timestamp time.Time, publicKey *PublicKey, pr
 	return wrapSignedPreKeyRecord(spkr), nil
 }
 
-func NewSignedPreKeyRecordFromPrivateKey(id int, timestamp time.Time, privateKey *PrivateKey, signature []byte) (*SignedPreKeyRecord, error) {
+func NewSignedPreKeyRecordFromPrivateKey(id uint32, timestamp time.Time, privateKey *PrivateKey, signature []byte) (*SignedPreKeyRecord, error) {
 	pub, err := privateKey.GetPublicKey()
 	if err != nil {
 		return nil, err
