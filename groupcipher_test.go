@@ -1,7 +1,6 @@
 package libsignalgo_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/beeper/libsignalgo"
@@ -34,11 +33,6 @@ func (ps *InMemorySignalProtocolStore) LoadSenderKey(sender libsignalgo.Address,
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%v %v %v===%v\n", name, deviceID, distributionID, ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}])
-	if ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}] != nil {
-		sk, err := ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}].Serialize()
-		fmt.Printf("=>=> %v %v\n", sk, err)
-	}
 	return ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}], nil
 }
 
@@ -51,7 +45,6 @@ func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address
 	if err != nil {
 		return err
 	}
-	fmt.Printf("store %v %v %v %v\n", name, deviceID, distributionID, record)
 	cloned, err := record.Clone()
 	if err != nil {
 		return err
@@ -64,7 +57,8 @@ func TestGroupCipher(t *testing.T) {
 	sender, err := libsignalgo.NewAddress("+14159999111", 4)
 	assert.NoError(t, err)
 
-	distributionID := uuid.New()
+	distributionID, err := uuid.Parse("d1d1d1d1-7000-11eb-b32a-33b8a8a487a6")
+	assert.NoError(t, err)
 
 	aliceStore := NewInMemorySignalProtocolStore()
 
@@ -77,17 +71,11 @@ func TestGroupCipher(t *testing.T) {
 	skdmReloaded, err := libsignalgo.DeserializeSenderKeyDistributionMessage(serialized)
 	assert.NoError(t, err)
 
-	assert.NotNil(t, skdmReloaded) // TODO Remove
-
-	fmt.Printf("ALICE %v\n", aliceStore)
-
 	aliceCiphertextMessage, err := libsignalgo.GroupEncrypt([]byte{1, 2, 3}, sender, distributionID, aliceStore, libsignalgo.StoreContext{})
 	assert.NoError(t, err)
 
 	aliceCiphertext, err := aliceCiphertextMessage.Serialize()
 	assert.NoError(t, err)
-
-	assert.Equal(t, []byte{}, aliceCiphertext) // TODO Remove
 
 	bobStore := NewInMemorySignalProtocolStore()
 	err = skdmReloaded.Process(sender, bobStore, libsignalgo.StoreContext{})
@@ -96,16 +84,4 @@ func TestGroupCipher(t *testing.T) {
 	bobPtext, err := libsignalgo.GroupDecrypt(aliceCiphertext, sender, bobStore, libsignalgo.StoreContext{})
 	assert.NoError(t, err)
 	assert.Equal(t, []byte{1, 2, 3}, bobPtext)
-
-	//     let a_ctext = try! groupEncrypt([1, 2, 3], from: sender, distributionId: distribution_id, store: a_store, context: NullContext()).serialize()
-
-	//     let b_store = InMemorySignalProtocolStore()
-	//     try! processSenderKeyDistributionMessage(skdm_r,
-	//                                              from: sender,
-	//                                              store: b_store,
-	//                                              context: NullContext())
-	//     let b_ptext = try! groupDecrypt(a_ctext, from: sender, store: b_store, context: NullContext())
-
-	//     XCTAssertEqual(b_ptext, [1, 2, 3])
-	// }
 }

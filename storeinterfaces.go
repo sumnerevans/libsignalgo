@@ -42,9 +42,9 @@ func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSes
 		context,
 	)
 	if err == nil {
-		recordp = &record.ptr
+		*recordp = record.ptr
 	} else {
-		recordp = nil
+		*recordp = nil
 	}
 	return 0
 }
@@ -79,27 +79,27 @@ func wrapSessionStore(store SessionStore) *C.SignalSessionStore {
 
 //export signal_get_identity_key_pair_callback
 func signal_get_identity_key_pair_callback(storeCtx unsafe.Pointer, keyp **C.SignalPrivateKey, ctx unsafe.Pointer) C.int {
-	return 0
+	panic("not implemented")
 }
 
 //export signal_get_local_registration_id_callback
 func signal_get_local_registration_id_callback(storeCtx unsafe.Pointer, idp *C.uint32_t, ctx unsafe.Pointer) C.int {
-	return 0
+	panic("not implemented")
 }
 
 //export signal_save_identity_key_callback
 func signal_save_identity_key_callback(storeCtx unsafe.Pointer, address *C.const_address, public_key *C.const_public_key, ctx unsafe.Pointer) C.int {
-	return 0
+	panic("not implemented")
 }
 
 //export signal_get_identity_key_callback
 func signal_get_identity_key_callback(storeCtx unsafe.Pointer, public_keyp **C.SignalPublicKey, address *C.const_address, ctx unsafe.Pointer) C.int {
-	return 0
+	panic("not implemented")
 }
 
 //export signal_is_trusted_identity_callback
 func signal_is_trusted_identity_callback(storeCtx unsafe.Pointer, address *C.const_address, public_key *C.const_public_key, direction C.uint, ctx unsafe.Pointer) C.int {
-	return 0
+	panic("not implemented")
 }
 
 type IdentityKeyStore interface {
@@ -135,9 +135,9 @@ func signal_load_sender_key_callback(storeCtx unsafe.Pointer, recordp **C.Signal
 		context,
 	)
 	if err == nil && record != nil {
-		recordp = &record.ptr
+		*recordp = record.ptr
 	} else {
-		recordp = nil
+		*recordp = nil
 	}
 	return 0
 }
