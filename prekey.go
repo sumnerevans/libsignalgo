@@ -5,7 +5,34 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import "runtime"
+import (
+	"runtime"
+
+	gopointer "github.com/mattn/go-pointer"
+)
+
+func DecryptPreKey(preKeyMessage *PreKeyMessage, fromAddress *Address, sessionStore SessionStore, identityStore IdentityKeyStore, preKeyStore PreKeyStore, signedPreKeyStore SignedPreKeyStore, context StoreContext) ([]byte, error) {
+	contextPointer := gopointer.Save(context)
+	defer gopointer.Unref(contextPointer)
+
+	var decrypted *C.uchar
+	var length C.ulong
+	signalFfiError := C.signal_decrypt_pre_key_message(
+		&decrypted,
+		&length,
+		preKeyMessage.ptr,
+		fromAddress.ptr,
+		wrapSessionStore(sessionStore),
+		wrapIdentityKeyStore(identityStore),
+		wrapPreKeyStore(preKeyStore),
+		wrapSignedPreKeyStore(signedPreKeyStore),
+		contextPointer,
+	)
+	if signalFfiError != nil {
+		return nil, wrapError(signalFfiError)
+	}
+	return CopyBufferToBytes(decrypted, length), nil
+}
 
 type PreKeyRecord struct {
 	ptr *C.SignalPreKeyRecord

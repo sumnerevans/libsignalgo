@@ -12,6 +12,8 @@ extern int signal_store_signed_pre_key_callback(void *store_ctx, uint32_t id, co
 import "C"
 import (
 	"unsafe"
+
+	gopointer "github.com/mattn/go-pointer"
 )
 
 type SignedPreKeyStore interface {
@@ -40,4 +42,13 @@ func signal_store_signed_pre_key_callback(storeCtx unsafe.Pointer, id C.uint32_t
 		}
 		return store.StoreSignedPreKey(uint32(id), cloned, context)
 	})
+}
+
+func wrapSignedPreKeyStore(store SignedPreKeyStore) *C.SignalSignedPreKeyStore {
+	// TODO: This is probably a memory leak
+	return &C.SignalSignedPreKeyStore{
+		ctx:                  gopointer.Save(store),
+		load_signed_pre_key:  C.SignalLoadSignedPreKey(C.signal_load_signed_pre_key_callback),
+		store_signed_pre_key: C.SignalStoreSignedPreKey(C.signal_store_signed_pre_key_callback),
+	}
 }

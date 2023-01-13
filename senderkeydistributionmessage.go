@@ -10,7 +10,21 @@ import (
 	"unsafe"
 
 	"github.com/google/uuid"
+	gopointer "github.com/mattn/go-pointer"
 )
+
+func ProcessSenderKeyDistributionMessage(message *SenderKeyDistributionMessage, fromSender *Address, store SenderKeyStore, context StoreContext) error {
+	contextPointer := gopointer.Save(context)
+	defer gopointer.Unref(contextPointer)
+
+	signalFfiError := C.signal_process_sender_key_distribution_message(
+		fromSender.ptr,
+		message.ptr,
+		wrapSenderKeyStore(store),
+		contextPointer,
+	)
+	return wrapError(signalFfiError)
+}
 
 type SenderKeyDistributionMessage struct {
 	ptr *C.SignalSenderKeyDistributionMessage
