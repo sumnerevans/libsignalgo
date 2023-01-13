@@ -97,7 +97,7 @@ func signal_is_trusted_identity_callback(storeCtx unsafe.Pointer, address *C.con
 		SignalDirection(direction),
 		context,
 	)
-	if trusted && err != nil {
+	if trusted && err == nil {
 		return 1
 	} else {
 		return 0

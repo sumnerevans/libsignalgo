@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/beeper/libsignalgo"
 )
@@ -51,6 +52,7 @@ func NewInMemorySignalProtocolStore() *InMemorySignalProtocolStore {
 }
 
 func (ps *InMemorySignalProtocolStore) LoadSession(address *libsignalgo.Address, context libsignalgo.StoreContext) (*libsignalgo.SessionRecord, error) {
+	log.Debug().Msg("LoadSession called")
 	name, err := address.Name()
 	if err != nil {
 		return nil, err
@@ -63,6 +65,7 @@ func (ps *InMemorySignalProtocolStore) LoadSession(address *libsignalgo.Address,
 }
 
 func (ps *InMemorySignalProtocolStore) StoreSession(address *libsignalgo.Address, record *libsignalgo.SessionRecord, context libsignalgo.StoreContext) error {
+	log.Debug().Msg("StoreSession called")
 	name, err := address.Name()
 	if err != nil {
 		return err
@@ -76,6 +79,7 @@ func (ps *InMemorySignalProtocolStore) StoreSession(address *libsignalgo.Address
 }
 
 func (ps *InMemorySignalProtocolStore) LoadSenderKey(sender libsignalgo.Address, distributionID uuid.UUID, context libsignalgo.StoreContext) (*libsignalgo.SenderKeyRecord, error) {
+	log.Debug().Msg("LoadSenderKey called")
 	name, err := sender.Name()
 	if err != nil {
 		return nil, err
@@ -88,6 +92,7 @@ func (ps *InMemorySignalProtocolStore) LoadSenderKey(sender libsignalgo.Address,
 }
 
 func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address, distributionID uuid.UUID, record *libsignalgo.SenderKeyRecord, context libsignalgo.StoreContext) error {
+	log.Debug().Msg("StoreSenderKey called")
 	name, err := sender.Name()
 	if err != nil {
 		return err
@@ -101,14 +106,17 @@ func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address
 }
 
 func (ps *InMemorySignalProtocolStore) GetIdentityKeyPair(context libsignalgo.StoreContext) (*libsignalgo.IdentityKeyPair, error) {
+	log.Debug().Msg("GetIdentityKeyPair called")
 	return ps.privateKeys, nil
 }
 
 func (ps *InMemorySignalProtocolStore) GetLocalRegistrationID(context libsignalgo.StoreContext) (uint32, error) {
+	log.Debug().Msg("GetLocalRegistrationID called")
 	return ps.registrationID, nil
 }
 
 func (ps *InMemorySignalProtocolStore) SaveIdentityKey(address *libsignalgo.Address, identityKey *libsignalgo.IdentityKey, context libsignalgo.StoreContext) error {
+	log.Debug().Msg("SaveIdentityKey called")
 	name, err := address.Name()
 	if err != nil {
 		return err
@@ -121,6 +129,7 @@ func (ps *InMemorySignalProtocolStore) SaveIdentityKey(address *libsignalgo.Addr
 	return err
 }
 func (ps *InMemorySignalProtocolStore) GetIdentityKey(address *libsignalgo.Address, context libsignalgo.StoreContext) (*libsignalgo.IdentityKey, error) {
+	log.Debug().Msg("GetIdentityKey called")
 	name, err := address.Name()
 	if err != nil {
 		return nil, err
@@ -133,6 +142,7 @@ func (ps *InMemorySignalProtocolStore) GetIdentityKey(address *libsignalgo.Addre
 }
 
 func (ps *InMemorySignalProtocolStore) IsTrustedIdentity(address *libsignalgo.Address, identityKey *libsignalgo.IdentityKey, direction libsignalgo.SignalDirection, context libsignalgo.StoreContext) (bool, error) {
+	log.Debug().Msg("IsTrustedIdentity called")
 	name, err := address.Name()
 	if err != nil {
 		return false, err
@@ -144,6 +154,7 @@ func (ps *InMemorySignalProtocolStore) IsTrustedIdentity(address *libsignalgo.Ad
 	if ik, ok := ps.identityKeyMap[AddressKey{name, deviceID}]; ok {
 		return ik.Equal(identityKey)
 	} else {
-		return true, nil
+		log.Trace().Msg("Trusting on first use")
+		return true, nil // Trust on first use
 	}
 }
