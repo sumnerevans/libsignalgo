@@ -20,9 +20,10 @@ func getKeyBytes(t *testing.T) []byte {
 	return keyBytes
 }
 
+// From HsmEnclaveTests.swift:testCreateClient
+// From HsmEnclaveTests.swift:testCreateClientFailsWithNoHashes
 func TestCreateHSMClient(t *testing.T) {
 	setupLogging()
-	// See HsmEnclaveTests.testCreateClient in the Swift tests.
 	hashes := []byte{
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -45,6 +46,7 @@ func TestCreateHSMClient(t *testing.T) {
 	})
 }
 
+// From HsmEnclaveTests.swift:testCompleteHandshakeWithoutInitialRequest
 func TestHSMCompleteHandshakeWithoutInitialRequest(t *testing.T) {
 	setupLogging()
 	client, err := libsignalgo.NewHSMEnclaveClient(getKeyBytes(t), nullHash)
@@ -53,6 +55,7 @@ func TestHSMCompleteHandshakeWithoutInitialRequest(t *testing.T) {
 	assert.Error(t, err)
 }
 
+// From HsmEnclaveTests.swift:testEstablishedSendFailsPriorToEstablishment
 func TestHSMEstablishedSendFailsPriorToEstablishment(t *testing.T) {
 	setupLogging()
 	client, err := libsignalgo.NewHSMEnclaveClient(getKeyBytes(t), nullHash)
@@ -61,6 +64,7 @@ func TestHSMEstablishedSendFailsPriorToEstablishment(t *testing.T) {
 	assert.Error(t, err)
 }
 
+// From HsmEnclaveTests.swift:testEstablishedRecvFailsPriorToEstablishment
 func TestHSMEstablishedReceiveFailsPriorToEstablishment(t *testing.T) {
 	setupLogging()
 	client, err := libsignalgo.NewHSMEnclaveClient(getKeyBytes(t), nullHash)
