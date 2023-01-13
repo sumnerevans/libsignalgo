@@ -20,7 +20,7 @@ func GenerateDeviceTransferKey() (*DeviceTransferKey, error) {
 	return &DeviceTransferKey{privateKey: CopyBufferToBytes(resp, length)}, nil
 }
 
-func (dtk *DeviceTransferKey) Bytes() []byte {
+func (dtk *DeviceTransferKey) PrivateKeyMaterial() []byte {
 	return dtk.privateKey
 }
 
