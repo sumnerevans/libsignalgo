@@ -5,11 +5,15 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import "runtime"
+import (
+	"runtime"
+
+	"github.com/google/uuid"
+)
 
 type SealedSenderAddress struct {
 	E164     string
-	UUID     string
+	UUID     uuid.UUID
 	DeviceID uint32
 }
 

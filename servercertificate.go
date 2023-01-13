@@ -51,7 +51,7 @@ func (sc *ServerCertificate) Destroy() error {
 	return wrapError(C.signal_server_certificate_destroy(sc.ptr))
 }
 
-func (sc *ServerCertificate) GetSerialized() ([]byte, error) {
+func (sc *ServerCertificate) Serialize() ([]byte, error) {
 	var serialized *C.uchar
 	var length C.ulong
 	signalFfiError := C.signal_server_certificate_get_serialized(&serialized, &length, sc.ptr)

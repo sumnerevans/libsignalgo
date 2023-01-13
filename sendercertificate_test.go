@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/beeper/libsignalgo"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +33,7 @@ func TestSenderCertificate_Operations(t *testing.T) {
 	assert.NotNil(t, senderCertificate)
 
 	t.Run("serialize", func(t *testing.T) {
-		serialized, err := senderCertificate.GetSerialized()
+		serialized, err := senderCertificate.Serialize()
 		assert.NoError(t, err)
 		assert.Equal(t, senderCertBits, serialized)
 	})
@@ -62,7 +63,9 @@ func TestSenderCertificate_Operations(t *testing.T) {
 	t.Run("sender UUID", func(t *testing.T) {
 		senderUUID, err := senderCertificate.GetSenderUUID()
 		assert.NoError(t, err)
-		assert.Equal(t, "9d0652a3-dcc3-4d11-975f-74d61598733f", senderUUID)
+		expectedUUID, err := uuid.Parse("9d0652a3-dcc3-4d11-975f-74d61598733f")
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUUID, senderUUID)
 	})
 
 	t.Run("sender E164", func(t *testing.T) {
@@ -121,6 +124,9 @@ func TestSenderCertificateSerializationRoundTrip(t *testing.T) {
 	testRoundTrip(t, "public key", keyPair.GetPublicKey(), libsignalgo.DeserializePublicKey)
 	testRoundTrip(t, "private key", keyPair.GetPrivateKey(), libsignalgo.DeserializePrivateKey)
 	testRoundTrip(t, "identity key", keyPair.GetIdentityKey(), libsignalgo.NewIdentityKeyFromBytes)
+
+	preKeyRecord, err := libsignalgo.NewPreKeyRecord(7, keyPair.GetPublicKey(), keyPair.GetPrivateKey())
+	testRoundTrip(t, "pre key record", preKeyRecord, libsignalgo.DeserializePreKeyRecord)
 
 	// TODO add the other tests similar to Swift
 }

@@ -43,8 +43,6 @@ func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSes
 	)
 	if err == nil {
 		*recordp = record.ptr
-	} else {
-		*recordp = nil
 	}
 	return 0
 }
@@ -136,8 +134,6 @@ func signal_load_sender_key_callback(storeCtx unsafe.Pointer, recordp **C.Signal
 	)
 	if err == nil && record != nil {
 		*recordp = record.ptr
-	} else {
-		*recordp = nil
 	}
 	return 0
 }

@@ -8,6 +8,8 @@ import "C"
 import (
 	"runtime"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type SenderCertificate struct {
@@ -24,7 +26,7 @@ func wrapSenderCertificate(ptr *C.SignalSenderCertificate) *SenderCertificate {
 // the Swift bindings).
 func NewSenderCertificate(sender *SealedSenderAddress, publicKey *PublicKey, expiration time.Time, signerCertificate ServerCertificate, signerKey *PrivateKey) (*SenderCertificate, error) {
 	var sc *C.SignalSenderCertificate
-	signalFfiError := C.signal_sender_certificate_new(&sc, C.CString(sender.UUID), C.CString(sender.E164), C.uint32_t(sender.DeviceID), publicKey.ptr, C.uint64_t(expiration.UnixMilli()), signerCertificate.ptr, signerKey.ptr)
+	signalFfiError := C.signal_sender_certificate_new(&sc, C.CString(sender.UUID.String()), C.CString(sender.E164), C.uint32_t(sender.DeviceID), publicKey.ptr, C.uint64_t(expiration.UnixMilli()), signerCertificate.ptr, signerKey.ptr)
 	if signalFfiError != nil {
 		return nil, wrapError(signalFfiError)
 	}
@@ -54,7 +56,7 @@ func (sc *SenderCertificate) Destroy() error {
 	return wrapError(C.signal_sender_certificate_destroy(sc.ptr))
 }
 
-func (sc *SenderCertificate) GetSerialized() ([]byte, error) {
+func (sc *SenderCertificate) Serialize() ([]byte, error) {
 	var serialized *C.uchar
 	var length C.ulong
 	signalFfiError := C.signal_sender_certificate_get_serialized(&serialized, &length, sc.ptr)
@@ -84,13 +86,13 @@ func (sc *SenderCertificate) GetSignature() ([]byte, error) {
 	return CopyBufferToBytes(signature, length), nil
 }
 
-func (sc *SenderCertificate) GetSenderUUID() (string, error) {
-	var uuid *C.char
-	signalFfiError := C.signal_sender_certificate_get_sender_uuid(&uuid, sc.ptr)
+func (sc *SenderCertificate) GetSenderUUID() (uuid.UUID, error) {
+	var rawUUID *C.char
+	signalFfiError := C.signal_sender_certificate_get_sender_uuid(&rawUUID, sc.ptr)
 	if signalFfiError != nil {
-		return "", wrapError(signalFfiError)
+		return uuid.UUID{}, wrapError(signalFfiError)
 	}
-	return CopyCStringToString(uuid), nil
+	return uuid.Parse(CopyCStringToString(rawUUID))
 }
 
 func (sc *SenderCertificate) GetSenderE164() (string, error) {
