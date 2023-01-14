@@ -12,21 +12,22 @@ extern int signal_remove_pre_key_callback(void *store_ctx, uint32_t id, void *ct
 */
 import "C"
 import (
+	"context"
 	"unsafe"
 
 	gopointer "github.com/mattn/go-pointer"
 )
 
 type PreKeyStore interface {
-	LoadPreKey(id uint32, context StoreContext) (*PreKeyRecord, error)
-	StorePreKey(id uint32, preKeyRecord *PreKeyRecord, context StoreContext) error
-	RemovePreKey(id uint32, context StoreContext) error
+	LoadPreKey(id uint32, ctx context.Context) (*PreKeyRecord, error)
+	StorePreKey(id uint32, preKeyRecord *PreKeyRecord, ctx context.Context) error
+	RemovePreKey(id uint32, ctx context.Context) error
 }
 
 //export signal_load_pre_key_callback
-func signal_load_pre_key_callback(storeCtx unsafe.Pointer, keyp **C.SignalPreKeyRecord, id C.uint32_t, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store PreKeyStore, context StoreContext) error {
-		key, err := store.LoadPreKey(uint32(id), context)
+func signal_load_pre_key_callback(storeCtx unsafe.Pointer, keyp **C.SignalPreKeyRecord, id C.uint32_t, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store PreKeyStore, ctx context.Context) error {
+		key, err := store.LoadPreKey(uint32(id), ctx)
 		if err == nil && key != nil {
 			*keyp = key.ptr
 		}
@@ -35,21 +36,21 @@ func signal_load_pre_key_callback(storeCtx unsafe.Pointer, keyp **C.SignalPreKey
 }
 
 //export signal_store_pre_key_callback
-func signal_store_pre_key_callback(storeCtx unsafe.Pointer, id C.uint32_t, preKeyRecord *C.const_pre_key_record, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store PreKeyStore, context StoreContext) error {
+func signal_store_pre_key_callback(storeCtx unsafe.Pointer, id C.uint32_t, preKeyRecord *C.const_pre_key_record, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store PreKeyStore, ctx context.Context) error {
 		record := PreKeyRecord{ptr: (*C.SignalPreKeyRecord)(unsafe.Pointer(preKeyRecord))}
 		cloned, err := record.Clone()
 		if err != nil {
 			return err
 		}
-		return store.StorePreKey(uint32(id), cloned, context)
+		return store.StorePreKey(uint32(id), cloned, ctx)
 	})
 }
 
 //export signal_remove_pre_key_callback
-func signal_remove_pre_key_callback(storeCtx unsafe.Pointer, id C.uint32_t, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store PreKeyStore, context StoreContext) error {
-		return store.RemovePreKey(uint32(id), context)
+func signal_remove_pre_key_callback(storeCtx unsafe.Pointer, id C.uint32_t, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store PreKeyStore, ctx context.Context) error {
+		return store.RemovePreKey(uint32(id), ctx)
 	})
 }
 

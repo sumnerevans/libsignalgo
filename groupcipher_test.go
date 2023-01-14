@@ -11,6 +11,7 @@ import (
 
 // From PublicAPITests.swift:testGroupCipher
 func TestGroupCipher(t *testing.T) {
+	ctx := libsignalgo.NewEmptyCallbackContext()
 	sender, err := libsignalgo.NewAddress("+14159999111", 4)
 	assert.NoError(t, err)
 
@@ -19,7 +20,7 @@ func TestGroupCipher(t *testing.T) {
 
 	aliceStore := NewInMemorySignalProtocolStore()
 
-	skdm, err := libsignalgo.NewSenderKeyDistributionMessage(sender, distributionID, aliceStore, nil)
+	skdm, err := libsignalgo.NewSenderKeyDistributionMessage(sender, distributionID, aliceStore, ctx)
 	assert.NoError(t, err)
 
 	serialized, err := skdm.Serialize()
@@ -28,17 +29,17 @@ func TestGroupCipher(t *testing.T) {
 	skdmReloaded, err := libsignalgo.DeserializeSenderKeyDistributionMessage(serialized)
 	assert.NoError(t, err)
 
-	aliceCiphertextMessage, err := libsignalgo.GroupEncrypt([]byte{1, 2, 3}, sender, distributionID, aliceStore, nil)
+	aliceCiphertextMessage, err := libsignalgo.GroupEncrypt([]byte{1, 2, 3}, sender, distributionID, aliceStore, ctx)
 	assert.NoError(t, err)
 
 	aliceCiphertext, err := aliceCiphertextMessage.Serialize()
 	assert.NoError(t, err)
 
 	bobStore := NewInMemorySignalProtocolStore()
-	err = skdmReloaded.Process(sender, bobStore, nil)
+	err = skdmReloaded.Process(sender, bobStore, ctx)
 	assert.NoError(t, err)
 
-	bobPtext, err := libsignalgo.GroupDecrypt(aliceCiphertext, sender, bobStore, nil)
+	bobPtext, err := libsignalgo.GroupDecrypt(aliceCiphertext, sender, bobStore, ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte{1, 2, 3}, bobPtext)
 }

@@ -9,11 +9,15 @@ import (
 	"unsafe"
 
 	"github.com/google/uuid"
+	gopointer "github.com/mattn/go-pointer"
 )
 
 var UUIDLen = sizeMustMatch(C.SignalUUID_LEN, 16)
 
-func GroupEncrypt(ptext []byte, sender *Address, distributionID uuid.UUID, store SenderKeyStore, context StoreContext) (*CiphertextMessage, error) {
+func GroupEncrypt(ptext []byte, sender *Address, distributionID uuid.UUID, store SenderKeyStore, ctx *CallbackContext) (*CiphertextMessage, error) {
+	contextPointer := gopointer.Save(ctx)
+	defer gopointer.Unref(contextPointer)
+
 	var ciphertextMessage *C.SignalCiphertextMessage
 	signalFfiError := C.signal_group_encrypt_message(
 		&ciphertextMessage,
@@ -21,14 +25,17 @@ func GroupEncrypt(ptext []byte, sender *Address, distributionID uuid.UUID, store
 		(*[C.SignalUUID_LEN]C.uchar)(unsafe.Pointer(&distributionID)),
 		BytesToBuffer(ptext),
 		wrapSenderKeyStore(store),
-		unsafe.Pointer(&context))
+		contextPointer)
 	if signalFfiError != nil {
-		return nil, wrapError(signalFfiError)
+		return nil, wrapCallbackError(signalFfiError, ctx)
 	}
 	return wrapCiphertextMessage(ciphertextMessage), nil
 }
 
-func GroupDecrypt(ctext []byte, sender *Address, store SenderKeyStore, context StoreContext) ([]byte, error) {
+func GroupDecrypt(ctext []byte, sender *Address, store SenderKeyStore, ctx *CallbackContext) ([]byte, error) {
+	contextPointer := gopointer.Save(ctx)
+	defer gopointer.Unref(contextPointer)
+
 	var resp *C.uchar
 	var length C.ulong
 	signalFfiError := C.signal_group_decrypt_message(
@@ -37,9 +44,9 @@ func GroupDecrypt(ctext []byte, sender *Address, store SenderKeyStore, context S
 		sender.ptr,
 		BytesToBuffer(ctext),
 		wrapSenderKeyStore(store),
-		unsafe.Pointer(&context))
+		contextPointer)
 	if signalFfiError != nil {
-		return nil, wrapError(signalFfiError)
+		return nil, wrapCallbackError(signalFfiError, ctx)
 	}
 	return CopyBufferToBytes(resp, length), nil
 }

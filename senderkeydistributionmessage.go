@@ -13,8 +13,8 @@ import (
 	gopointer "github.com/mattn/go-pointer"
 )
 
-func ProcessSenderKeyDistributionMessage(message *SenderKeyDistributionMessage, fromSender *Address, store SenderKeyStore, context StoreContext) error {
-	contextPointer := gopointer.Save(context)
+func ProcessSenderKeyDistributionMessage(message *SenderKeyDistributionMessage, fromSender *Address, store SenderKeyStore, ctx *CallbackContext) error {
+	contextPointer := gopointer.Save(ctx)
 	defer gopointer.Unref(contextPointer)
 
 	signalFfiError := C.signal_process_sender_key_distribution_message(
@@ -23,7 +23,7 @@ func ProcessSenderKeyDistributionMessage(message *SenderKeyDistributionMessage, 
 		wrapSenderKeyStore(store),
 		contextPointer,
 	)
-	return wrapError(signalFfiError)
+	return wrapCallbackError(signalFfiError, ctx)
 }
 
 type SenderKeyDistributionMessage struct {
@@ -36,16 +36,19 @@ func wrapSenderKeyDistributionMessage(ptr *C.SignalSenderKeyDistributionMessage)
 	return sc
 }
 
-func NewSenderKeyDistributionMessage(sender *Address, distributionID uuid.UUID, store SenderKeyStore, context StoreContext) (*SenderKeyDistributionMessage, error) {
+func NewSenderKeyDistributionMessage(sender *Address, distributionID uuid.UUID, store SenderKeyStore, ctx *CallbackContext) (*SenderKeyDistributionMessage, error) {
+	contextPointer := gopointer.Save(ctx)
+	defer gopointer.Unref(contextPointer)
+
 	var skdm *C.SignalSenderKeyDistributionMessage
 	signalFfiError := C.signal_sender_key_distribution_message_create(
 		&skdm,
 		sender.ptr,
 		(*[C.SignalUUID_LEN]C.uchar)(unsafe.Pointer(&distributionID)),
 		wrapSenderKeyStore(store),
-		unsafe.Pointer(&context))
+		contextPointer)
 	if signalFfiError != nil {
-		return nil, wrapError(signalFfiError)
+		return nil, wrapCallbackError(signalFfiError, ctx)
 	}
 	return wrapSenderKeyDistributionMessage(skdm), nil
 }
@@ -74,14 +77,17 @@ func (sc *SenderKeyDistributionMessage) Serialize() ([]byte, error) {
 	return CopyBufferToBytes(serialized, length), nil
 }
 
-func (sc *SenderKeyDistributionMessage) Process(sender *Address, store SenderKeyStore, context StoreContext) error {
+func (sc *SenderKeyDistributionMessage) Process(sender *Address, store SenderKeyStore, ctx *CallbackContext) error {
+	contextPointer := gopointer.Save(ctx)
+	defer gopointer.Unref(contextPointer)
+
 	signalFfiError := C.signal_process_sender_key_distribution_message(
 		sender.ptr,
 		sc.ptr,
 		wrapSenderKeyStore(store),
-		unsafe.Pointer(&context))
+		contextPointer)
 	if signalFfiError != nil {
-		return wrapError(signalFfiError)
+		return wrapCallbackError(signalFfiError, ctx)
 	}
 	return nil
 }

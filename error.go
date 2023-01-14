@@ -5,7 +5,9 @@ package libsignalgo
 #include "./libsignal/libsignal-ffi.h"
 */
 import "C"
-import "fmt"
+import (
+	"fmt"
+)
 
 type ErrorCode int
 
@@ -48,7 +50,7 @@ func (e *SignalError) Error() string {
 	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }
 
-func wrapError(signalError *C.SignalFfiError) error {
+func wrapCallbackError(signalError *C.SignalFfiError, ctx *CallbackContext) error {
 	if signalError == nil {
 		return nil
 	}
@@ -56,7 +58,24 @@ func wrapError(signalError *C.SignalFfiError) error {
 	defer C.signal_error_free(signalError)
 
 	errorType := C.signal_error_get_type(signalError)
+	if ErrorCode(errorType) == ErrorCodeCallbackError {
+		return ctx.Error
+	} else {
+		return wrapSignalError(signalError, errorType)
+	}
+}
 
+func wrapError(signalError *C.SignalFfiError) error {
+	if signalError == nil {
+		return nil
+	}
+
+	defer C.signal_error_free(signalError)
+
+	return wrapSignalError(signalError, C.signal_error_get_type(signalError))
+}
+
+func wrapSignalError(signalError *C.SignalFfiError, errorType C.uint32_t) error {
 	var messageBytes *C.char
 	getMessageError := C.signal_error_get_message(signalError, &messageBytes)
 	if getMessageError != nil {

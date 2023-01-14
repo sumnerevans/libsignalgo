@@ -14,6 +14,7 @@ extern int signal_store_sender_key_callback(void *store_ctx, const_address*, con
 */
 import "C"
 import (
+	"context"
 	"unsafe"
 
 	"github.com/google/uuid"
@@ -21,8 +22,8 @@ import (
 )
 
 type SenderKeyStore interface {
-	LoadSenderKey(sender Address, distributionID uuid.UUID, context StoreContext) (*SenderKeyRecord, error)
-	StoreSenderKey(sender Address, distributionID uuid.UUID, record *SenderKeyRecord, context StoreContext) error
+	LoadSenderKey(sender Address, distributionID uuid.UUID, ctx context.Context) (*SenderKeyRecord, error)
+	StoreSenderKey(sender Address, distributionID uuid.UUID, record *SenderKeyRecord, ctx context.Context) error
 }
 
 func wrapSenderKeyStore(store SenderKeyStore) *C.SignalSenderKeyStore {
@@ -36,13 +37,13 @@ func wrapSenderKeyStore(store SenderKeyStore) *C.SignalSenderKeyStore {
 }
 
 //export signal_load_sender_key_callback
-func signal_load_sender_key_callback(storeCtx unsafe.Pointer, recordp **C.SignalSenderKeyRecord, address *C.const_address, distributionIDBytes *C.const_uuid_bytes, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store SenderKeyStore, context StoreContext) error {
+func signal_load_sender_key_callback(storeCtx unsafe.Pointer, recordp **C.SignalSenderKeyRecord, address *C.const_address, distributionIDBytes *C.const_uuid_bytes, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store SenderKeyStore, ctx context.Context) error {
 		distributionID := uuid.UUID(*(*[16]byte)(unsafe.Pointer(distributionIDBytes)))
 		record, err := store.LoadSenderKey(
 			Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
 			distributionID,
-			context,
+			ctx,
 		)
 		if err == nil && record != nil {
 			*recordp = record.ptr
@@ -52,8 +53,8 @@ func signal_load_sender_key_callback(storeCtx unsafe.Pointer, recordp **C.Signal
 }
 
 //export signal_store_sender_key_callback
-func signal_store_sender_key_callback(storeCtx unsafe.Pointer, address *C.const_address, distributionIDBytes *C.const_uuid_bytes, senderKeyRecord *C.const_sender_key_record, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store SenderKeyStore, context StoreContext) error {
+func signal_store_sender_key_callback(storeCtx unsafe.Pointer, address *C.const_address, distributionIDBytes *C.const_uuid_bytes, senderKeyRecord *C.const_sender_key_record, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store SenderKeyStore, ctx context.Context) error {
 		distributionID := uuid.UUID(*(*[16]byte)(unsafe.Pointer(distributionIDBytes)))
 		record := SenderKeyRecord{ptr: (*C.SignalSenderKeyRecord)(unsafe.Pointer(senderKeyRecord))}
 		cloned, err := record.Clone()
@@ -65,7 +66,7 @@ func signal_store_sender_key_callback(storeCtx unsafe.Pointer, address *C.const_
 			Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
 			distributionID,
 			cloned,
-			context,
+			ctx,
 		)
 	})
 }

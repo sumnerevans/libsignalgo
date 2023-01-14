@@ -12,24 +12,23 @@ extern int signal_store_session_callback(void *store_ctx, const_address *address
 */
 import "C"
 import (
+	"context"
 	"unsafe"
 
 	gopointer "github.com/mattn/go-pointer"
 )
 
-type StoreContext interface{}
-
 type SessionStore interface {
-	LoadSession(address *Address, context StoreContext) (*SessionRecord, error)
-	StoreSession(address *Address, record *SessionRecord, context StoreContext) error
+	LoadSession(address *Address, ctx context.Context) (*SessionRecord, error)
+	StoreSession(address *Address, record *SessionRecord, ctx context.Context) error
 }
 
 //export signal_load_session_callback
-func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSessionRecord, address *C.const_address, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store SessionStore, context StoreContext) error {
+func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSessionRecord, address *C.const_address, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store SessionStore, ctx context.Context) error {
 		record, err := store.LoadSession(
 			&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
-			context,
+			ctx,
 		)
 		if err == nil && record != nil {
 			*recordp = record.ptr
@@ -39,8 +38,8 @@ func signal_load_session_callback(storeCtx unsafe.Pointer, recordp **C.SignalSes
 }
 
 //export signal_store_session_callback
-func signal_store_session_callback(storeCtx unsafe.Pointer, address *C.const_address, sessionRecord *C.const_session_record, ctx unsafe.Pointer) C.int {
-	return wrapStoreCallback(storeCtx, ctx, func(store SessionStore, context StoreContext) error {
+func signal_store_session_callback(storeCtx unsafe.Pointer, address *C.const_address, sessionRecord *C.const_session_record, ctxPtr unsafe.Pointer) C.int {
+	return wrapStoreCallback(storeCtx, ctxPtr, func(store SessionStore, ctx context.Context) error {
 		record := SessionRecord{ptr: (*C.SignalSessionRecord)(unsafe.Pointer(sessionRecord))}
 		cloned, err := record.Clone()
 		if err != nil {
@@ -49,7 +48,7 @@ func signal_store_session_callback(storeCtx unsafe.Pointer, address *C.const_add
 		return store.StoreSession(
 			&Address{ptr: (*C.SignalProtocolAddress)(unsafe.Pointer(address))},
 			cloned,
-			context,
+			ctx,
 		)
 	})
 }

@@ -11,8 +11,8 @@ import (
 	gopointer "github.com/mattn/go-pointer"
 )
 
-func Decrypt(message *Message, fromAddress *Address, sessionStore SessionStore, identityStore IdentityKeyStore, context StoreContext) ([]byte, error) {
-	contextPointer := gopointer.Save(context)
+func Decrypt(message *Message, fromAddress *Address, sessionStore SessionStore, identityStore IdentityKeyStore, ctx *CallbackContext) ([]byte, error) {
+	contextPointer := gopointer.Save(ctx)
 	defer gopointer.Unref(contextPointer)
 
 	var decrypted *C.uchar
@@ -27,7 +27,7 @@ func Decrypt(message *Message, fromAddress *Address, sessionStore SessionStore, 
 		contextPointer,
 	)
 	if signalFfiError != nil {
-		return nil, wrapError(signalFfiError)
+		return nil, wrapCallbackError(signalFfiError, ctx)
 	}
 	return CopyBufferToBytes(decrypted, length), nil
 }

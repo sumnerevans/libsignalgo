@@ -1,7 +1,9 @@
 package libsignalgo_test
 
 import (
+	"context"
 	"crypto/rand"
+	"errors"
 	"math/big"
 
 	"github.com/google/uuid"
@@ -57,7 +59,7 @@ func NewInMemorySignalProtocolStore() *InMemorySignalProtocolStore {
 
 // Implementation of the SessionStore interface
 
-func (ps *InMemorySignalProtocolStore) LoadSession(address *libsignalgo.Address, context libsignalgo.StoreContext) (*libsignalgo.SessionRecord, error) {
+func (ps *InMemorySignalProtocolStore) LoadSession(address *libsignalgo.Address, ctx context.Context) (*libsignalgo.SessionRecord, error) {
 	log.Debug().Msg("LoadSession called")
 	name, err := address.Name()
 	if err != nil {
@@ -71,7 +73,7 @@ func (ps *InMemorySignalProtocolStore) LoadSession(address *libsignalgo.Address,
 	return ps.sessionMap[AddressKey{name, deviceID}], nil
 }
 
-func (ps *InMemorySignalProtocolStore) StoreSession(address *libsignalgo.Address, record *libsignalgo.SessionRecord, context libsignalgo.StoreContext) error {
+func (ps *InMemorySignalProtocolStore) StoreSession(address *libsignalgo.Address, record *libsignalgo.SessionRecord, ctx context.Context) error {
 	log.Debug().Msg("StoreSession called")
 	name, err := address.Name()
 	if err != nil {
@@ -87,7 +89,7 @@ func (ps *InMemorySignalProtocolStore) StoreSession(address *libsignalgo.Address
 
 // Implementation of the SenderKeyStore interface
 
-func (ps *InMemorySignalProtocolStore) LoadSenderKey(sender libsignalgo.Address, distributionID uuid.UUID, context libsignalgo.StoreContext) (*libsignalgo.SenderKeyRecord, error) {
+func (ps *InMemorySignalProtocolStore) LoadSenderKey(sender libsignalgo.Address, distributionID uuid.UUID, ctx context.Context) (*libsignalgo.SenderKeyRecord, error) {
 	log.Debug().Msg("LoadSenderKey called")
 	name, err := sender.Name()
 	if err != nil {
@@ -100,7 +102,7 @@ func (ps *InMemorySignalProtocolStore) LoadSenderKey(sender libsignalgo.Address,
 	return ps.senderKeyMap[SenderKeyName{name, deviceID, distributionID}], nil
 }
 
-func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address, distributionID uuid.UUID, record *libsignalgo.SenderKeyRecord, context libsignalgo.StoreContext) error {
+func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address, distributionID uuid.UUID, record *libsignalgo.SenderKeyRecord, ctx context.Context) error {
 	log.Debug().Msg("StoreSenderKey called")
 	name, err := sender.Name()
 	if err != nil {
@@ -116,17 +118,17 @@ func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address
 
 // Implementation of the IdentityKeyStore interface
 
-func (ps *InMemorySignalProtocolStore) GetIdentityKeyPair(context libsignalgo.StoreContext) (*libsignalgo.IdentityKeyPair, error) {
+func (ps *InMemorySignalProtocolStore) GetIdentityKeyPair(ctx context.Context) (*libsignalgo.IdentityKeyPair, error) {
 	log.Debug().Msg("GetIdentityKeyPair called")
 	return ps.privateKeys, nil
 }
 
-func (ps *InMemorySignalProtocolStore) GetLocalRegistrationID(context libsignalgo.StoreContext) (uint32, error) {
+func (ps *InMemorySignalProtocolStore) GetLocalRegistrationID(ctx context.Context) (uint32, error) {
 	log.Debug().Msg("GetLocalRegistrationID called")
 	return ps.registrationID, nil
 }
 
-func (ps *InMemorySignalProtocolStore) SaveIdentityKey(address *libsignalgo.Address, identityKey *libsignalgo.IdentityKey, context libsignalgo.StoreContext) error {
+func (ps *InMemorySignalProtocolStore) SaveIdentityKey(address *libsignalgo.Address, identityKey *libsignalgo.IdentityKey, ctx context.Context) error {
 	log.Debug().Msg("SaveIdentityKey called")
 	name, err := address.Name()
 	if err != nil {
@@ -139,7 +141,7 @@ func (ps *InMemorySignalProtocolStore) SaveIdentityKey(address *libsignalgo.Addr
 	ps.identityKeyMap[AddressKey{name, deviceID}] = identityKey
 	return err
 }
-func (ps *InMemorySignalProtocolStore) GetIdentityKey(address *libsignalgo.Address, context libsignalgo.StoreContext) (*libsignalgo.IdentityKey, error) {
+func (ps *InMemorySignalProtocolStore) GetIdentityKey(address *libsignalgo.Address, ctx context.Context) (*libsignalgo.IdentityKey, error) {
 	log.Debug().Msg("GetIdentityKey called")
 	name, err := address.Name()
 	if err != nil {
@@ -152,7 +154,7 @@ func (ps *InMemorySignalProtocolStore) GetIdentityKey(address *libsignalgo.Addre
 	return ps.identityKeyMap[AddressKey{name, deviceID}], nil
 }
 
-func (ps *InMemorySignalProtocolStore) IsTrustedIdentity(address *libsignalgo.Address, identityKey *libsignalgo.IdentityKey, direction libsignalgo.SignalDirection, context libsignalgo.StoreContext) (bool, error) {
+func (ps *InMemorySignalProtocolStore) IsTrustedIdentity(address *libsignalgo.Address, identityKey *libsignalgo.IdentityKey, direction libsignalgo.SignalDirection, ctx context.Context) (bool, error) {
 	log.Debug().Msg("IsTrustedIdentity called")
 	name, err := address.Name()
 	if err != nil {
@@ -172,27 +174,35 @@ func (ps *InMemorySignalProtocolStore) IsTrustedIdentity(address *libsignalgo.Ad
 
 // Implementation of the PreKeyStore interface
 
-func (ps *InMemorySignalProtocolStore) LoadPreKey(id uint32, context libsignalgo.StoreContext) (*libsignalgo.PreKeyRecord, error) {
+func (ps *InMemorySignalProtocolStore) LoadPreKey(id uint32, ctx context.Context) (*libsignalgo.PreKeyRecord, error) {
 	return ps.preKeyMap[id], nil
 }
 
-func (ps *InMemorySignalProtocolStore) StorePreKey(id uint32, preKeyRecord *libsignalgo.PreKeyRecord, context libsignalgo.StoreContext) error {
+func (ps *InMemorySignalProtocolStore) StorePreKey(id uint32, preKeyRecord *libsignalgo.PreKeyRecord, ctx context.Context) error {
 	ps.preKeyMap[id] = preKeyRecord
 	return nil
 }
 
-func (ps *InMemorySignalProtocolStore) RemovePreKey(id uint32, context libsignalgo.StoreContext) error {
+func (ps *InMemorySignalProtocolStore) RemovePreKey(id uint32, ctx context.Context) error {
 	delete(ps.preKeyMap, id)
 	return nil
 }
 
-// Implementation of the  SignedPreKeyStore interface
+// Implementation of the SignedPreKeyStore interface
 
-func (ps *InMemorySignalProtocolStore) LoadSignedPreKey(id uint32, context libsignalgo.StoreContext) (*libsignalgo.SignedPreKeyRecord, error) {
+func (ps *InMemorySignalProtocolStore) LoadSignedPreKey(id uint32, ctx context.Context) (*libsignalgo.SignedPreKeyRecord, error) {
 	return ps.signedPreKeyMap[id], nil
 }
 
-func (ps *InMemorySignalProtocolStore) StoreSignedPreKey(id uint32, signedPreKeyRecord *libsignalgo.SignedPreKeyRecord, context libsignalgo.StoreContext) error {
+func (ps *InMemorySignalProtocolStore) StoreSignedPreKey(id uint32, signedPreKeyRecord *libsignalgo.SignedPreKeyRecord, ctx context.Context) error {
 	ps.signedPreKeyMap[id] = signedPreKeyRecord
 	return nil
+}
+
+type BadInMemorySignalProtocolStore struct {
+	*InMemorySignalProtocolStore
+}
+
+func (ps *BadInMemorySignalProtocolStore) LoadPreKey(id uint32, ctx context.Context) (*libsignalgo.PreKeyRecord, error) {
+	return nil, errors.New("Test error")
 }

@@ -11,8 +11,8 @@ import (
 	gopointer "github.com/mattn/go-pointer"
 )
 
-func ProcessPreKeyBundle(bundle *PreKeyBundle, forAddress *Address, sessionStore SessionStore, identityStore IdentityKeyStore, context StoreContext) error {
-	contextPointer := gopointer.Save(context)
+func ProcessPreKeyBundle(bundle *PreKeyBundle, forAddress *Address, sessionStore SessionStore, identityStore IdentityKeyStore, ctx *CallbackContext) error {
+	contextPointer := gopointer.Save(ctx)
 	defer gopointer.Unref(contextPointer)
 
 	signalFfiError := C.signal_process_prekey_bundle(
@@ -22,7 +22,7 @@ func ProcessPreKeyBundle(bundle *PreKeyBundle, forAddress *Address, sessionStore
 		wrapIdentityKeyStore(identityStore),
 		contextPointer,
 	)
-	return wrapError(signalFfiError)
+	return wrapCallbackError(signalFfiError, ctx)
 }
 
 type PreKeyBundle struct {
