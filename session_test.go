@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -150,4 +151,57 @@ func TestSessionCipherWithBadStore(t *testing.T) {
 	_, err = libsignalgo.DecryptPreKey(bobCiphertext, aliceAddress, bobStore, bobStore, bobStore, bobStore, ctx)
 	require.Error(t, err)
 	assert.Equal(t, "Test error", err.Error())
+}
+
+// From SessionTests.swift:testSealedSenderSession
+func TestSealedSenderSession(t *testing.T) {
+	ctx := libsignalgo.NewEmptyCallbackContext()
+	aliceAddress, err := libsignalgo.NewAddress("9d0652a3-dcc3-4d11-975f-74d61598733f", 1)
+	assert.NoError(t, err)
+	bobAddress, err := libsignalgo.NewAddress("6838237D-02F6-4098-B110-698253D15961", 1)
+	assert.NoError(t, err)
+
+	aliceStore := NewInMemorySignalProtocolStore()
+	bobStore := NewInMemorySignalProtocolStore()
+
+	initializeSessions(t, aliceStore, bobStore, bobAddress)
+
+	trustRoot, err := libsignalgo.GenerateIdentityKeyPair()
+	assert.NoError(t, err)
+	serverKeys, err := libsignalgo.GenerateIdentityKeyPair()
+	assert.NoError(t, err)
+	serverCert, err := libsignalgo.NewServerCertificate(1, serverKeys.GetPublicKey(), trustRoot.GetPrivateKey())
+	assert.NoError(t, err)
+	aliceName, err := aliceAddress.Name()
+	assert.NoError(t, err)
+	senderAddress := libsignalgo.NewSealedSenderAddress("+14151111111", uuid.MustParse(aliceName), 1)
+
+	aliceIdentityKeyPair, err := aliceStore.GetIdentityKeyPair(ctx.Ctx)
+	require.NoError(t, err)
+	senderCert, err := libsignalgo.NewSenderCertificate(senderAddress, aliceIdentityKeyPair.GetPublicKey(), time.UnixMilli(31337), serverCert, serverKeys.GetPrivateKey())
+
+	message := []byte("2020 vision")
+	ciphertext, err := libsignalgo.SealedSenderEncryptPlaintext(message, bobAddress, senderCert, aliceStore, aliceStore, ctx)
+	require.NoError(t, err)
+	assert.NotNil(t, ciphertext)
+
+	bobName, err := bobAddress.Name()
+	require.NoError(t, err)
+	recipientAddress := libsignalgo.NewSealedSenderAddress("", uuid.MustParse(bobName), 1)
+	plaintext, err := libsignalgo.SealedSenderDecrypt(
+		ciphertext,
+		recipientAddress,
+		trustRoot.GetPublicKey(),
+		time.UnixMilli(31335),
+		bobStore,
+		bobStore,
+		bobStore,
+		bobStore,
+		ctx,
+	)
+	require.NoError(t, err)
+	assert.Equal(t, message, plaintext.Message)
+	assert.Equal(t, senderAddress.DeviceID, plaintext.Sender.DeviceID)
+	assert.Equal(t, senderAddress.E164, plaintext.Sender.E164)
+	assert.Equal(t, senderAddress.UUID, plaintext.Sender.UUID)
 }

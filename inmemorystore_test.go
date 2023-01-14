@@ -141,6 +141,7 @@ func (ps *InMemorySignalProtocolStore) SaveIdentityKey(address *libsignalgo.Addr
 	ps.identityKeyMap[AddressKey{name, deviceID}] = identityKey
 	return err
 }
+
 func (ps *InMemorySignalProtocolStore) GetIdentityKey(address *libsignalgo.Address, ctx context.Context) (*libsignalgo.IdentityKey, error) {
 	log.Debug().Msg("GetIdentityKey called")
 	name, err := address.Name()
