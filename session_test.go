@@ -208,3 +208,51 @@ func TestSealedSenderSession(t *testing.T) {
 	assert.Equal(t, senderAddress.E164, plaintext.Sender.E164)
 	assert.Equal(t, senderAddress.UUID, plaintext.Sender.UUID)
 }
+
+// From SessionTests.swift:testArchiveSession
+func TestArchiveSession(t *testing.T) {
+	setupLogging()
+	ctx := libsignalgo.NewEmptyCallbackContext()
+
+	bobAddress, err := libsignalgo.NewAddress("+14151111112", 1)
+	assert.NoError(t, err)
+
+	aliceStore := NewInMemorySignalProtocolStore()
+	bobStore := NewInMemorySignalProtocolStore()
+
+	initializeSessions(t, aliceStore, bobStore, bobAddress)
+
+	session, err := aliceStore.LoadSession(bobAddress, ctx.Ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, session)
+
+	hasCurrentState, err := session.HasCurrentState()
+	assert.NoError(t, err)
+	assert.True(t, hasCurrentState)
+
+	newIdentityKeyPair, err := libsignalgo.GenerateIdentityKeyPair()
+	assert.NoError(t, err)
+	matches, err := session.CurrentRatchetKeyMatches(newIdentityKeyPair.GetPublicKey())
+	assert.NoError(t, err)
+	assert.False(t, matches)
+
+	err = session.ArchiveCurrentState()
+	assert.NoError(t, err)
+
+	hasCurrentState, err = session.HasCurrentState()
+	assert.NoError(t, err)
+	assert.False(t, hasCurrentState)
+	newIdentityKeyPair, err = libsignalgo.GenerateIdentityKeyPair()
+	assert.NoError(t, err)
+	matches, err = session.CurrentRatchetKeyMatches(newIdentityKeyPair.GetPublicKey())
+	assert.NoError(t, err)
+	assert.False(t, matches)
+
+	// A redundant archive shouldn't break anything.
+	err = session.ArchiveCurrentState()
+	assert.NoError(t, err)
+
+	hasCurrentState, err = session.HasCurrentState()
+	assert.NoError(t, err)
+	assert.False(t, hasCurrentState)
+}
