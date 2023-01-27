@@ -6,7 +6,6 @@ package libsignalgo
 */
 import "C"
 import (
-	"fmt"
 	"runtime"
 	"time"
 
@@ -72,8 +71,6 @@ func SealedSenderDecrypt(ciphertext []byte, localAddress *SealedSenderAddress, t
 	contextPointer := gopointer.Save(ctx)
 	defer gopointer.Unref(contextPointer)
 
-	fmt.Printf("CIPHRETEXT %v\n", ciphertext)
-
 	var decrypted *C.uchar
 	var length C.ulong
 	var senderE164 *C.char
@@ -102,8 +99,6 @@ func SealedSenderDecrypt(ciphertext []byte, localAddress *SealedSenderAddress, t
 		err = wrapCallbackError(signalFfiError, ctx)
 		return
 	}
-
-	fmt.Printf("===================w%s\n", C.GoString(senderE164))
 
 	defer C.signal_free_string(senderE164)
 	defer C.signal_free_string(senderUUID)

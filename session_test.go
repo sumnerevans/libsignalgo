@@ -23,9 +23,9 @@ func initializeSessions(t *testing.T, aliceStore, bobStore *InMemorySignalProtoc
 	bobSignedPreKey, err := libsignalgo.GeneratePrivateKey()
 	assert.NoError(t, err)
 
-	bobSignedPreKeyPublic, err := bobSignedPreKey.GetPublicKey()
+	bobSignedPreKeyPublicKey, err := bobSignedPreKey.GetPublicKey()
 	assert.NoError(t, err)
-	bobSignedPreKeyPublicSerialized, err := bobSignedPreKeyPublic.Serialize()
+	bobSignedPreKeyPublicSerialized, err := bobSignedPreKeyPublicKey.Serialize()
 	assert.NoError(t, err)
 
 	bobIdentityKey, err := bobStore.GetIdentityKeyPair(ctx)
@@ -44,7 +44,7 @@ func initializeSessions(t *testing.T, aliceStore, bobStore *InMemorySignalProtoc
 		prekeyID,
 		bobPreKeyPublicKey,
 		signedPreKeyID,
-		bobSignedPreKeyPublic,
+		bobSignedPreKeyPublicKey,
 		bobSignedPreKeySignature,
 		bobIdentityKey.GetPublicKey(),
 	)
@@ -102,6 +102,7 @@ func TestSessionCipher(t *testing.T) {
 	assert.NoError(t, err)
 	bobCiphertext, err := libsignalgo.DeserializePreKeyMessage(aliceCiphertextSerialized)
 	assert.NoError(t, err)
+
 	bobPlaintext, err := libsignalgo.DecryptPreKey(bobCiphertext, aliceAddress, bobStore, bobStore, bobStore, bobStore, ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, alicePlaintext, bobPlaintext)
@@ -155,6 +156,8 @@ func TestSessionCipherWithBadStore(t *testing.T) {
 
 // From SessionTests.swift:testSealedSenderSession
 func TestSealedSenderSession(t *testing.T) {
+	setupLogging()
+
 	ctx := libsignalgo.NewEmptyCallbackContext()
 	aliceAddress, err := libsignalgo.NewAddress("9d0652a3-dcc3-4d11-975f-74d61598733f", 1)
 	assert.NoError(t, err)

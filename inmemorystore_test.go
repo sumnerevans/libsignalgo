@@ -24,8 +24,8 @@ type AddressKey struct {
 }
 
 type InMemorySignalProtocolStore struct {
-	privateKeys    *libsignalgo.IdentityKeyPair
-	registrationID uint32
+	identityKeyPair *libsignalgo.IdentityKeyPair
+	registrationID  uint32
 
 	identityKeyMap  map[AddressKey]*libsignalgo.IdentityKey
 	preKeyMap       map[uint32]*libsignalgo.PreKeyRecord
@@ -46,8 +46,8 @@ func NewInMemorySignalProtocolStore() *InMemorySignalProtocolStore {
 	}
 
 	return &InMemorySignalProtocolStore{
-		privateKeys:    identityKeyPair,
-		registrationID: uint32(registrationID.Uint64()),
+		identityKeyPair: identityKeyPair,
+		registrationID:  uint32(registrationID.Uint64()),
 
 		identityKeyMap:  make(map[AddressKey]*libsignalgo.IdentityKey),
 		preKeyMap:       make(map[uint32]*libsignalgo.PreKeyRecord),
@@ -120,7 +120,7 @@ func (ps *InMemorySignalProtocolStore) StoreSenderKey(sender libsignalgo.Address
 
 func (ps *InMemorySignalProtocolStore) GetIdentityKeyPair(ctx context.Context) (*libsignalgo.IdentityKeyPair, error) {
 	log.Debug().Msg("GetIdentityKeyPair called")
-	return ps.privateKeys, nil
+	return ps.identityKeyPair, nil
 }
 
 func (ps *InMemorySignalProtocolStore) GetLocalRegistrationID(ctx context.Context) (uint32, error) {
