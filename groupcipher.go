@@ -12,7 +12,7 @@ import (
 	gopointer "github.com/mattn/go-pointer"
 )
 
-var UUIDLen = sizeMustMatch(C.SignalUUID_LEN, 16)
+var _ = sizeMustMatch(C.SignalUUID_LEN, 16)
 
 func GroupEncrypt(ptext []byte, sender *Address, distributionID uuid.UUID, store SenderKeyStore, ctx *CallbackContext) (*CiphertextMessage, error) {
 	contextPointer := gopointer.Save(ctx)
