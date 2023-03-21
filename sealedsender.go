@@ -62,6 +62,13 @@ func SealedSenderEncrypt(messageContent *UnidentifiedSenderMessageContent, forRe
 	return CopyBufferToBytes(encrypted, length), nil
 }
 
+func SealedSenderMultiRecipientEncrypt(messageContent *UnidentifiedSenderMessageContent, forRecipients []*Address, identityStore IdentityKeyStore, sessionStore SessionStore, ctx *CallbackContext) ([]byte, error) {
+	contextPointer := gopointer.Save(ctx)
+	defer gopointer.Unref(contextPointer)
+
+	panic("not implemented")
+}
+
 type SealedSenderResult struct {
 	Message []byte
 	Sender  SealedSenderAddress

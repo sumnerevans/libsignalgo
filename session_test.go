@@ -207,6 +207,36 @@ func TestSealedSenderSession(t *testing.T) {
 	assert.Equal(t, senderAddress.DeviceID, plaintext.Sender.DeviceID)
 	assert.Equal(t, senderAddress.E164, plaintext.Sender.E164)
 	assert.Equal(t, senderAddress.UUID, plaintext.Sender.UUID)
+
+	innerMessage, err := libsignalgo.Encrypt([]byte{}, bobAddress, aliceStore, aliceStore, ctx)
+	require.NoError(t, err)
+
+	hints := []libsignalgo.UnidentifiedSenderMessageContentHint{
+		200,
+		libsignalgo.UnidentifiedSenderMessageContentHintDefault,
+		libsignalgo.UnidentifiedSenderMessageContentHintResendable,
+		libsignalgo.UnidentifiedSenderMessageContentHintImplicit,
+	}
+
+	for _, hint := range hints {
+		content, err := libsignalgo.NewUnidentifiedSenderMessageContent(
+			innerMessage,
+			senderCert,
+			hint,
+			[]byte{},
+		)
+		require.NoError(t, err)
+
+		ciphertext, err := libsignalgo.SealedSenderEncrypt(content, bobAddress, aliceStore, ctx)
+		require.NoError(t, err)
+
+		decryptedContent, err := libsignalgo.NewUnidentifiedSenderMessageContent(ciphertext)
+
+		// let decryptedContent = try UnidentifiedSenderMessageContent(message: ciphertext,
+		//                                                             identityStore: bob_store,
+		//                                                             context: NullContext())
+		// XCTAssertEqual(decryptedContent.contentHint, hint)
+	}
 }
 
 // From SessionTests.swift:testArchiveSession
@@ -255,4 +285,64 @@ func TestArchiveSession(t *testing.T) {
 	hasCurrentState, err = session.HasCurrentState()
 	assert.NoError(t, err)
 	assert.False(t, hasCurrentState)
+}
+
+// From SessionTests.swift:testSealedSenderGroupCipher
+func TestSealedSenderGroupCipher(t *testing.T) {
+	setupLogging()
+	ctx := libsignalgo.NewEmptyCallbackContext()
+
+	aliceAddress, err := libsignalgo.NewAddress("9d0652a3-dcc3-4d11-975f-74d61598733f", 1)
+	assert.NoError(t, err)
+	bobAddress, err := libsignalgo.NewAddress("6838237D-02F6-4098-B110-698253D15961", 1)
+	assert.NoError(t, err)
+
+	aliceStore := NewInMemorySignalProtocolStore()
+	aliceIdentityKeyPair, err := aliceStore.GetIdentityKeyPair(ctx.Ctx)
+
+	bobStore := NewInMemorySignalProtocolStore()
+
+	initializeSessions(t, aliceStore, bobStore, bobAddress)
+
+	trustRoot, err := libsignalgo.GenerateIdentityKeyPair()
+	assert.NoError(t, err)
+	serverKeys, err := libsignalgo.GenerateIdentityKeyPair()
+	assert.NoError(t, err)
+	serverCert, err := libsignalgo.NewServerCertificate(1, serverKeys.GetPublicKey(), trustRoot.GetPrivateKey())
+	assert.NoError(t, err)
+	aliceName, err := aliceAddress.Name()
+	assert.NoError(t, err)
+	senderAddress := libsignalgo.NewSealedSenderAddress("+14151111111", uuid.MustParse(aliceName), 1)
+	senderCert, err := libsignalgo.NewSenderCertificate(
+		senderAddress,
+		aliceIdentityKeyPair.GetPublicKey(),
+		time.UnixMilli(31337),
+		serverCert,
+		serverKeys.GetPrivateKey(),
+	)
+	assert.NoError(t, err)
+
+	distributionID := uuid.MustParse("d1d1d1d1-7000-11eb-b32a-33b8a8a487a6")
+
+	skdm, err := libsignalgo.NewSenderKeyDistributionMessage(aliceAddress, distributionID, aliceStore, ctx)
+	assert.NoError(t, err)
+	skdmBytes, err := skdm.Serialize()
+
+	skdmR, err := libsignalgo.DeserializeSenderKeyDistributionMessage(skdmBytes)
+	assert.NoError(t, err)
+
+	err = libsignalgo.ProcessSenderKeyDistributionMessage(skdmR, aliceAddress, bobStore, ctx)
+	assert.NoError(t, err)
+
+	aMessage, err := libsignalgo.GroupEncrypt([]byte{1, 2, 3}, aliceAddress, distributionID, aliceStore, ctx)
+	assert.NoError(t, err)
+
+	aUSMC, err := libsignalgo.NewUnidentifiedSenderMessageContent(aMessage, senderCert, libsignalgo.UnidentifiedSenderMessageContentHintDefault, []byte{42})
+	assert.NoError(t, err)
+
+	aCtext, err := libsignalgo.SealedSenderMultiRecipientEncrypt(aUSMC, []*libsignalgo.Address{bobAddress}, aliceStore, aliceStore, ctx)
+	assert.NoError(t, err)
+
+	// TODO: finish
+	assert.NotNil(t, aCtext)
 }
